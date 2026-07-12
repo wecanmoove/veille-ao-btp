@@ -1,224 +1,531 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veille AO BTP — Surveillance automatisée des appels d'offres</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #333; background: #f9f9f9; }
-        header { background: linear-gradient(135deg, #0b5ed7 0%, #0d6efd 100%); color: white; padding: 3rem 1rem; text-align: center; }
-        header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        header p { font-size: 1.1rem; opacity: 0.95; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
-        section { margin: 3rem 0; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        h2 { color: #0b5ed7; margin-bottom: 1rem; font-size: 1.8rem; }
-        h3 { color: #0d6efd; margin-top: 1.5rem; margin-bottom: 0.5rem; }
-        ul { margin-left: 2rem; }
-        li { margin-bottom: 0.5rem; }
-        code { background: #f4f4f4; padding: 0.25rem 0.5rem; border-radius: 4px; font-family: 'Courier New', monospace; }
-        pre { background: #f4f4f4; padding: 1rem; border-radius: 4px; overflow-x: auto; margin: 1rem 0; }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0; }
-        .feature-card { padding: 1.5rem; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9; }
-        .feature-card h3 { margin-top: 0; }
-        .cta-buttons { display: flex; gap: 1rem; flex-wrap: wrap; margin: 2rem 0; }
-        .btn { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s; }
-        .btn-primary { background: #0b5ed7; color: white; }
-        .btn-primary:hover { background: #0a58ca; }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-secondary:hover { background: #5c636a; }
-        .tech-stack { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
-        .tech-badge { background: #e7f1ff; color: #0b5ed7; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 500; }
-        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e0e0e0; }
-        th { background: #f0f0f0; font-weight: 600; }
-        footer { text-align: center; padding: 2rem; color: #666; border-top: 1px solid #e0e0e0; margin-top: 3rem; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veille AO BTP — Ne ratez plus jamais un chantier</title>
+<style>
+  :root {
+    --navy: #0f2557;
+    --navy-2: #1e3a8a;
+    --amber: #f59e0b;
+    --amber-light: #fef3c7;
+    --ink: #1e293b;
+    --ink-2: #475569;
+    --ink-3: #94a3b8;
+    --surface: #f8fafc;
+    --card: #ffffff;
+    --good: #047857;      --good-bg: #d1fae5;
+    --info: #0369a1;      --info-bg: #e0f2fe;
+    --warn: #b45309;      --warn-bg: #fef3c7;
+    --muted: #64748b;     --muted-bg: #f1f5f9;
+    --radius: 16px;
+    --shadow: 0 4px 20px rgba(15, 37, 87, 0.08);
+    --shadow-hover: 0 10px 30px rgba(15, 37, 87, 0.15);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--ink); background: var(--surface); line-height: 1.6; }
+  .container { max-width: 1050px; margin: 0 auto; padding: 0 1.25rem; }
+
+  /* ===== HERO ===== */
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 70%, #2563eb 100%);
+    color: white; padding: 4.5rem 1rem 7rem; text-align: center; position: relative; overflow: hidden;
+  }
+  .hero::after {
+    content: "🏗️ 🧱 🔨 🚧 🏢 🛠️ 🏗️ 🧱 🔨 🚧 🏢 🛠️";
+    position: absolute; bottom: 1rem; left: 0; right: 0;
+    font-size: 1.4rem; opacity: 0.25; letter-spacing: 1.5rem; white-space: nowrap;
+  }
+  .hero .badge-top {
+    display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    padding: 0.4rem 1rem; border-radius: 999px; font-size: 0.85rem; margin-bottom: 1.5rem;
+  }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.15; margin-bottom: 1rem; }
+  .hero h1 em { font-style: normal; color: var(--amber); }
+  .hero p.sub { font-size: 1.15rem; opacity: 0.92; max-width: 640px; margin: 0 auto 2rem; }
+  .cta-row { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 0.9rem 1.8rem; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 1rem; transition: transform .15s, box-shadow .15s; }
+  .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+  .btn-amber { background: var(--amber); color: #442c00; }
+  .btn-ghost { background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.4); }
+
+  /* ===== STAT TILES ===== */
+  .stats-band { margin-top: -3.5rem; position: relative; z-index: 2; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; }
+  .stat-tile {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 1.6rem 1.4rem; text-align: center;
+  }
+  .stat-tile .emoji { font-size: 1.8rem; }
+  .stat-tile .num { font-size: 2.4rem; font-weight: 800; color: var(--navy); line-height: 1.2; }
+  .stat-tile .num small { font-size: 1.2rem; font-weight: 700; }
+  .stat-tile .label { color: var(--ink-2); font-size: 0.95rem; margin-top: 0.2rem; }
+
+  /* ===== SECTIONS ===== */
+  section { padding: 3.5rem 0 1rem; }
+  .kicker { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.8rem; font-weight: 800; color: var(--amber); margin-bottom: 0.4rem; }
+  h2 { font-size: clamp(1.5rem, 3.5vw, 2.1rem); color: var(--navy); margin-bottom: 0.6rem; }
+  .section-sub { color: var(--ink-2); max-width: 640px; margin-bottom: 2rem; }
+
+  .cards-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; }
+  .card {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 1.8rem 1.5rem; transition: transform .15s, box-shadow .15s;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+  .card .big-emoji { font-size: 2.4rem; display: block; margin-bottom: 0.8rem; }
+  .card h3 { color: var(--navy); font-size: 1.15rem; margin-bottom: 0.4rem; }
+  .card p { color: var(--ink-2); font-size: 0.95rem; }
+
+  .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 2.2rem; height: 2.2rem; border-radius: 50%;
+    background: var(--amber); color: #442c00; font-weight: 800; margin-bottom: 0.8rem;
+  }
+
+  /* ===== DEMO ===== */
+  .demo-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+  @media (max-width: 780px) { .demo-wrap { grid-template-columns: 1fr; } }
+  .demo-list { display: flex; flex-direction: column; gap: 0.8rem; }
+  .demo-item {
+    text-align: left; background: var(--card); border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 1rem 1.2rem; cursor: pointer; font: inherit; transition: all .15s; width: 100%;
+  }
+  .demo-item:hover { border-color: var(--amber); transform: translateX(4px); }
+  .demo-item.active { border-color: var(--navy-2); background: #eff6ff; }
+  .demo-item .t { font-weight: 700; color: var(--ink); }
+  .demo-item .s { font-size: 0.85rem; color: var(--ink-3); }
+
+  .gauge-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 2rem 1.5rem; text-align: center; position: sticky; top: 1rem; }
+  .gauge-svg { width: 230px; height: 140px; }
+  .gauge-track { fill: none; stroke: #e2e8f0; stroke-width: 18; stroke-linecap: round; }
+  .gauge-fill { fill: none; stroke-width: 18; stroke-linecap: round; transition: stroke-dashoffset 0.9s cubic-bezier(.2,.8,.3,1), stroke 0.4s; }
+  .gauge-score { font-size: 2.6rem; font-weight: 800; fill: var(--navy); }
+  .gauge-outof { font-size: 0.85rem; fill: var(--ink-3); }
+  .verdict {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.45rem 1.1rem; border-radius: 999px; font-weight: 800; font-size: 1rem; margin-top: 0.6rem;
+  }
+  .explain { color: var(--ink-2); font-size: 0.95rem; margin-top: 0.9rem; min-height: 3.2em; }
+  .chips { margin-top: 0.8rem; display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; }
+  .chip { background: var(--muted-bg); color: var(--ink-2); border-radius: 999px; padding: 0.2rem 0.7rem; font-size: 0.8rem; }
+
+  /* ===== LEGENDE SCORE ===== */
+  .legend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+  .legend-tile { border-radius: 12px; padding: 1.1rem 1.2rem; }
+  .legend-tile .range { font-size: 0.8rem; font-weight: 700; opacity: 0.75; }
+  .legend-tile .name { font-weight: 800; font-size: 1.05rem; }
+  .legend-tile p { font-size: 0.88rem; margin-top: 0.2rem; }
+
+  /* ===== CALCULATEUR ===== */
+  .calc-card { background: var(--navy); color: white; border-radius: var(--radius); padding: 2.2rem; box-shadow: var(--shadow); }
+  .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; }
+  @media (max-width: 780px) { .calc-grid { grid-template-columns: 1fr; } }
+  .calc-card label { display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.95rem; }
+  .calc-card .slider-val { color: var(--amber); font-weight: 800; }
+  .calc-card input[type=range] { width: 100%; accent-color: var(--amber); margin-bottom: 1.6rem; }
+  .calc-result { text-align: center; background: rgba(255,255,255,0.08); border-radius: 12px; padding: 1.5rem; }
+  .calc-result .big { font-size: 2.6rem; font-weight: 800; color: var(--amber); }
+  .calc-result .med { font-size: 1.15rem; margin-top: 0.4rem; }
+  .calc-result .note { font-size: 0.8rem; opacity: 0.7; margin-top: 0.6rem; }
+
+  /* ===== SOURCES / FAQ ===== */
+  .source-row { display: flex; align-items: center; gap: 1rem; background: var(--card); border-radius: 12px; box-shadow: var(--shadow); padding: 1.1rem 1.4rem; margin-bottom: 0.9rem; }
+  .source-row .icon { font-size: 1.6rem; }
+  .source-row .name { font-weight: 700; color: var(--navy); }
+  .source-row .desc { font-size: 0.88rem; color: var(--ink-2); }
+  .pill { margin-left: auto; font-size: 0.75rem; font-weight: 800; padding: 0.25rem 0.7rem; border-radius: 999px; white-space: nowrap; }
+  .pill-live { background: var(--good-bg); color: var(--good); }
+  .pill-soon { background: var(--warn-bg); color: var(--warn); }
+
+  details { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 0.8rem; padding: 1rem 1.3rem; }
+  details summary { font-weight: 700; color: var(--navy); cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.6rem; }
+  details summary::before { content: "➕"; font-size: 0.9rem; }
+  details[open] summary::before { content: "➖"; }
+  details p { margin-top: 0.7rem; color: var(--ink-2); font-size: 0.95rem; }
+
+  /* ===== FOOTER ===== */
+  .final-cta { text-align: center; padding: 4rem 1rem; }
+  footer { text-align: center; padding: 2rem 1rem 3rem; color: var(--ink-3); font-size: 0.85rem; border-top: 1px solid #e2e8f0; margin-top: 2rem; }
+  footer a { color: var(--navy-2); }
+</style>
 </head>
 <body>
-    <header>
-        <h1>🏗️ Veille AO BTP</h1>
-        <p>Plateforme de surveillance automatisée des appels d'offres du secteur du bâtiment et réhabilitation</p>
-    </header>
 
-    <div class="container">
-        <section>
-            <h2>🎯 Objectif</h2>
-            <p>
-                Détecter, qualifier et alerter <strong>automatiquement</strong> sur les appels d'offres pertinents dans les domaines :
-            </p>
-            <ul>
-                <li>Réhabilitation / Rénovation énergétique</li>
-                <li>Gros œuvre et second œuvre</li>
-                <li>Travaux tous corps d'état (TCE)</li>
-                <li>Maintenance / Entretien de bâtiments</li>
-            </ul>
-        </section>
-
-        <section>
-            <h2>✨ Fonctionnalités principales</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <h3>📡 Collecte multi-sources</h3>
-                    <p>BOAMP (API réelle), PLACE, France Marchés (connecteurs prêts à brancher)</p>
-                </div>
-                <div class="feature-card">
-                    <h3>🧠 Filtrage intelligent</h3>
-                    <p>Préfiltrage déterministe + scoring IA (OpenAI) avec fallback automatique en règles</p>
-                </div>
-                <div class="feature-card">
-                    <h3>🔄 Dédoublonnage</h3>
-                    <p>Intra et inter-sources via hash normalisé pour une veille propre</p>
-                </div>
-                <div class="feature-card">
-                    <h3>⏰ Scheduler autonome</h3>
-                    <p>Cron configurable par source, verrou anti-chevauchement, historique complet</p>
-                </div>
-                <div class="feature-card">
-                    <h3>📧 Alertes multi-canal</h3>
-                    <p>Email (Resend), Slack (webhook), anti-doublon d'alertes, mode instant/digest</p>
-                </div>
-                <div class="feature-card">
-                    <h3>📊 Dashboard intuitif</h3>
-                    <p>Filtres multicritères, fiches détail, historique syncs et notifications</p>
-                </div>
-            </div>
-        </section>
-
-        <section>
-            <h2>🚀 Démarrage rapide</h2>
-            <pre><code># Cloner
-git clone https://github.com/wecanmoove/veille-ao-btp.git
-cd veille-ao-btp
-
-# Installer
-npm install
-
-# Configurer
-cp .env.example .env
-# Éditer .env avec vos clés API
-
-# Initialiser la DB
-npm run db:push
-npm run db:seed
-
-# Lancer
-npm run dev
-# Visiter http://localhost:3000/ao</code></pre>
-            <div class="cta-buttons">
-                <a href="https://github.com/wecanmoove/veille-ao-btp" class="btn btn-primary">📘 Voir le code</a>
-                <a href="https://github.com/wecanmoove/veille-ao-btp#documentation" class="btn btn-secondary">📚 Documentation</a>
-            </div>
-        </section>
-
-        <section>
-            <h2>🏗️ Architecture</h2>
-            <h3>Stack technologique</h3>
-            <div class="tech-stack">
-                <span class="tech-badge">Next.js 16 (Frontend)</span>
-                <span class="tech-badge">Node.js (Backend)</span>
-                <span class="tech-badge">Prisma 6 (ORM)</span>
-                <span class="tech-badge">SQLite / PostgreSQL (DB)</span>
-                <span class="tech-badge">node-cron (Scheduler)</span>
-                <span class="tech-badge">OpenAI API (IA)</span>
-                <span class="tech-badge">TypeScript (Strict)</span>
-            </div>
-            <h3>Pipeline de traitement</h3>
-            <pre><code>Collecte → Normalisation → Dédoublonnage → Filtrage BTP
-          ↓
-Scoring (IA + Fallback) → Stockage → Alertes Email/Slack</code></pre>
-        </section>
-
-        <section>
-            <h2>🔗 Sources de données (Phase 1)</h2>
-            <table>
-                <tr>
-                    <th>Source</th>
-                    <th>État</th>
-                    <th>Type</th>
-                    <th>Fréquence</th>
-                </tr>
-                <tr>
-                    <td><strong>BOAMP</strong></td>
-                    <td>✅ Réel (API)</td>
-                    <td>API Opendatasoft</td>
-                    <td>Toutes les 4h</td>
-                </tr>
-                <tr>
-                    <td><strong>PLACE / Chorus Pro</strong></td>
-                    <td>⚠️ Mocké</td>
-                    <td>Structure prête</td>
-                    <td>2x par jour</td>
-                </tr>
-                <tr>
-                    <td><strong>France Marchés</strong></td>
-                    <td>⚠️ Mocké</td>
-                    <td>Structure prête</td>
-                    <td>1x par jour</td>
-                </tr>
-            </table>
-            <p><strong>Phase 2 (TODO)</strong> : Profils acheteurs du 13, presse spécialisée BTP, dédoublonnage avancé</p>
-        </section>
-
-        <section>
-            <h2>📊 Filtrage métier BTP</h2>
-            <h3>Pipeline 3 niveaux</h3>
-            <ol>
-                <li><strong>Préfiltrage déterministe</strong> : Mots-clés métier (30+), pondération CPV division 45</li>
-                <li><strong>Scoring IA</strong> : Analyse complète (titre, description, CPV, localisation) + classification</li>
-                <li><strong>Résultat final</strong> : Score (0-100), niveau (très_pertinent | pertinent | à_verifier | non_pertinent), catégorie travaux</li>
-            </ol>
-        </section>
-
-        <section>
-            <h2>🧪 État du MVP</h2>
-            <ul>
-                <li>✅ Collecte multi-sources (BOAMP réelle + 2 mockées)</li>
-                <li>✅ Pipeline complet (normalisation → dedup → filtrage → scoring → stockage → alertes)</li>
-                <li>✅ Scheduler cron autonome avec verrou anti-chevauchement</li>
-                <li>✅ UI complète (dashboard, config, historique)</li>
-                <li>✅ Alertes email + Slack avec anti-doublon</li>
-                <li>✅ Mode IA (avec fallback automatique)</li>
-                <li>✅ Base de données & ORM (Prisma)</li>
-                <li>🔲 Intégration PLACE/Chorus Pro (structure prête, à brancher)</li>
-                <li>🔲 Profils acheteurs du 13 (Phase 2)</li>
-            </ul>
-            <p style="margin-top: 1.5rem; color: #666; font-style: italic;">
-                <strong>Fonctionnel et prêt pour intégration réelle et tests en conditions réelles.</strong>
-            </p>
-        </section>
-
-        <section>
-            <h2>📝 Commandes utiles</h2>
-            <pre><code>npm run dev              # Serveur dev
-npm run build            # Build production
-npm run typecheck        # Vérifier les types
-npm run lint             # ESLint
-npm run db:push          # Appliquer schéma Prisma
-npm run db:seed          # Charger données démo
-npm run sync             # Sync manuelle
-npm run sync boamp       # Sync d'une source</code></pre>
-        </section>
-
-        <section>
-            <h2>🤝 Contribution & Roadmap</h2>
-            <p>Architecture modulaire prête pour :</p>
-            <ul>
-                <li>Ajouter une nouvelle source (créer connecteur) : <code>src/server/connectors/[source].ts</code></li>
-                <li>Intégrer un nouveau canal d'alerte (Email, Slack, Teams, Make, etc.)</li>
-                <li>Étendre le scoring avec des règles métier plus fines</li>
-                <li>Améliorer le dédoublonnage inter-sources</li>
-            </ul>
-            <div class="cta-buttons">
-                <a href="https://github.com/wecanmoove/veille-ao-btp/issues" class="btn btn-secondary">💡 Issues & Feedback</a>
-                <a href="https://github.com/wecanmoove/veille-ao-btp/blob/main/README.md" class="btn btn-secondary">📖 README complet</a>
-            </div>
-        </section>
+<!-- ============ HERO ============ -->
+<div class="hero">
+  <div class="container">
+    <span class="badge-top">🔎 Veille automatisée des marchés publics BTP</span>
+    <h1>Pendant que vous êtes sur vos chantiers,<br><em>lui, il chasse les appels d'offres.</em></h1>
+    <p class="sub">
+      Chaque jour, des centaines de marchés publics sont publiés. Les bons partent vite.
+      Votre veilleur numérique les lit <strong>tous</strong>, garde ceux qui vous concernent
+      et vous les note sur 100. Vous n'ouvrez que la crème.
+    </p>
+    <div class="cta-row">
+      <a href="#demo" class="btn btn-amber">🎯 Tester le score en 10 secondes</a>
+      <a href="#calc" class="btn btn-ghost">💶 Calculer mes économies</a>
     </div>
+  </div>
+</div>
 
-    <footer>
-        <p>Veille AO BTP — MVP July 2026</p>
-        <p><a href="https://github.com/wecanmoove/veille-ao-btp" style="color: #0b5ed7; text-decoration: none;">GitHub Repository</a></p>
-    </footer>
+<!-- ============ STAT TILES ============ -->
+<div class="stats-band container">
+  <div class="stats-grid">
+    <div class="stat-tile">
+      <div class="emoji">👀</div>
+      <div class="num"><span class="count" data-target="24">0</span><small>h/24</small></div>
+      <div class="label">de surveillance, week-ends compris</div>
+    </div>
+    <div class="stat-tile">
+      <div class="emoji">📰</div>
+      <div class="num"><span class="count" data-target="100">0</span><small>%</small></div>
+      <div class="label">des avis BOAMP lus et analysés</div>
+    </div>
+    <div class="stat-tile">
+      <div class="emoji">☕</div>
+      <div class="num"><span class="count" data-target="5">0</span><small> min</small></div>
+      <div class="label">le matin pour tout passer en revue</div>
+    </div>
+    <div class="stat-tile">
+      <div class="emoji">🔔</div>
+      <div class="num"><span class="count" data-target="0">0</span></div>
+      <div class="label">opportunité ratée pendant vos congés</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ DOULEURS ============ -->
+<section>
+  <div class="container">
+    <div class="kicker">Le problème</div>
+    <h2>La veille d'appels d'offres, aujourd'hui, c'est ça :</h2>
+    <div class="cards-3">
+      <div class="card">
+        <span class="big-emoji">🌙</span>
+        <h3>Le soir, après le chantier</h3>
+        <p>Éplucher le BOAMP et trois plateformes différentes quand tout le monde est couché. Une heure par jour, minimum.</p>
+      </div>
+      <div class="card">
+        <span class="big-emoji">🗑️</span>
+        <h3>90 % de bruit</h3>
+        <p>Fournitures de bureau, nettoyage, transport scolaire… Pour trouver UN marché de réhabilitation, il faut en écarter cinquante.</p>
+      </div>
+      <div class="card">
+        <span class="big-emoji">😤</span>
+        <h3>Le marché parfait… trop tard</h3>
+        <p>Vous découvrez l'appel d'offres idéal 3 jours avant la date limite. Impossible de monter un dossier sérieux à temps.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMMENT CA MARCHE ============ -->
+<section>
+  <div class="container">
+    <div class="kicker">La solution</div>
+    <h2>Trois étapes. Zéro effort.</h2>
+    <div class="cards-3">
+      <div class="card">
+        <span class="step-num">1</span>
+        <span class="big-emoji">🤖</span>
+        <h3>Il surveille</h3>
+        <p>Toutes les 4 heures, il ramasse les nouvelles annonces sur le BOAMP (la source officielle de l'État) et les autres plateformes. Sans jamais dormir.</p>
+      </div>
+      <div class="card">
+        <span class="step-num">2</span>
+        <span class="big-emoji">🎯</span>
+        <h3>Il trie et note sur 100</h3>
+        <p>Réhabilitation, gros œuvre, TCE, façades… il parle votre langue. Chaque annonce reçoit un score de pertinence. Le hors-sujet part à la corbeille.</p>
+      </div>
+      <div class="card">
+        <span class="step-num">3</span>
+        <span class="big-emoji">🔔</span>
+        <h3>Il vous alerte</h3>
+        <p>Email ou Slack, dès qu'une belle affaire sort — ou en résumé quotidien si vous préférez. Jamais deux fois la même alerte, promis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DEMO INTERACTIVE ============ -->
+<section id="demo">
+  <div class="container">
+    <div class="kicker">À vous de jouer</div>
+    <h2>🎮 Testez le radar : cliquez sur une annonce</h2>
+    <p class="section-sub">Voici 4 annonces typiques d'une journée sur le BOAMP. Cliquez et regardez comment le radar les note — exactement comme il le fait dans l'application.</p>
+
+    <div class="demo-wrap">
+      <div class="demo-list" id="demoList">
+        <button class="demo-item" data-demo="0">
+          <div class="t">🏢 Réhabilitation énergétique de 40 logements sociaux</div>
+          <div class="s">Office HLM — Marseille (13) · isolation, menuiseries, CVC</div>
+        </button>
+        <button class="demo-item" data-demo="1">
+          <div class="t">🏫 Ravalement de façades et réfection d'étanchéité d'une école</div>
+          <div class="s">Commune — Aix-en-Provence (13) · façade, étanchéité</div>
+        </button>
+        <button class="demo-item" data-demo="2">
+          <div class="t">🌳 Entretien d'espaces verts avec petits aménagements</div>
+          <div class="s">Métropole — Bouches-du-Rhône (13) · flou : travaux ou entretien ?</div>
+        </button>
+        <button class="demo-item" data-demo="3">
+          <div class="t">🖊️ Fourniture de papeterie et consommables de bureau</div>
+          <div class="s">Conseil départemental (13) · aucun rapport avec le BTP</div>
+        </button>
+      </div>
+
+      <div class="gauge-card">
+        <svg class="gauge-svg" viewBox="0 0 230 140" aria-label="Jauge de score de pertinence">
+          <path class="gauge-track" d="M 25 125 A 90 90 0 0 1 205 125" />
+          <path class="gauge-fill" id="gaugeFill" d="M 25 125 A 90 90 0 0 1 205 125"
+                stroke="#94a3b8" stroke-dasharray="283" stroke-dashoffset="283" />
+          <text x="115" y="105" text-anchor="middle" class="gauge-score" id="gaugeScore">—</text>
+          <text x="115" y="128" text-anchor="middle" class="gauge-outof">score de pertinence / 100</text>
+        </svg>
+        <div><span class="verdict" id="verdict" style="background: var(--muted-bg); color: var(--muted);">👆 Cliquez sur une annonce</span></div>
+        <p class="explain" id="explain">Le radar analyse le titre, la description, les codes travaux officiels (CPV) et la localisation.</p>
+        <div class="chips" id="chips"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LEGENDE ============ -->
+<section>
+  <div class="container">
+    <div class="kicker">Lecture du score</div>
+    <h2>Un code couleur, pas un tableur</h2>
+    <div class="legend-grid">
+      <div class="legend-tile" style="background: var(--good-bg); color: var(--good);">
+        <div class="range">70 – 100</div>
+        <div class="name">🟢 Foncez</div>
+        <p>Pile votre métier. Alerte immédiate, dossier à préparer.</p>
+      </div>
+      <div class="legend-tile" style="background: var(--info-bg); color: var(--info);">
+        <div class="range">45 – 69</div>
+        <div class="name">🔵 Intéressant</div>
+        <p>Pertinent, à regarder dans votre revue du matin.</p>
+      </div>
+      <div class="legend-tile" style="background: var(--warn-bg); color: var(--warn);">
+        <div class="range">20 – 44</div>
+        <div class="name">🟠 À vérifier</div>
+        <p>Ambigu. Le radar préfère vous le montrer que le jeter.</p>
+      </div>
+      <div class="legend-tile" style="background: var(--muted-bg); color: var(--muted);">
+        <div class="range">0 – 19</div>
+        <div class="name">⚪ Passez</div>
+        <p>Hors sujet. Classé sans suite, sans vous déranger.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CALCULATEUR ROI ============ -->
+<section id="calc">
+  <div class="container">
+    <div class="kicker">Et en euros ?</div>
+    <h2>💶 Combien vous coûte votre veille manuelle ?</h2>
+    <p class="section-sub">Deux curseurs, une estimation honnête. Le radar automatise l'écrémage — vous ne gardez que la décision finale.</p>
+
+    <div class="calc-card">
+      <div class="calc-grid">
+        <div>
+          <label>⏱️ Temps passé à éplucher les annonces :
+            <span class="slider-val"><span id="hoursVal">5</span> h / semaine</span></label>
+          <input type="range" id="hoursSlider" min="1" max="15" value="5">
+
+          <label>💼 Valeur d'une heure de votre temps :
+            <span class="slider-val"><span id="rateVal">50</span> € / h</span></label>
+          <input type="range" id="rateSlider" min="20" max="120" step="5" value="50">
+        </div>
+        <div class="calc-result">
+          <div class="big" id="moneySaved">9 550 €</div>
+          <div class="med">économisés par an</div>
+          <div class="med" style="opacity:0.9;">soit <strong id="hoursSaved">191 h</strong> rendues à vos chantiers 🏗️</div>
+          <div class="note">Hypothèse prudente : 85 % du tri automatisé, 45 semaines travaillées/an.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SOURCES ============ -->
+<section>
+  <div class="container">
+    <div class="kicker">Les yeux du radar</div>
+    <h2>Où regarde-t-il ?</h2>
+    <div class="source-row">
+      <span class="icon">🇫🇷</span>
+      <div>
+        <div class="name">BOAMP — Bulletin officiel des marchés publics</div>
+        <div class="desc">LA source officielle de l'État. Connexion directe à l'API publique, relevée toutes les 4 heures.</div>
+      </div>
+      <span class="pill pill-live">✓ Branché</span>
+    </div>
+    <div class="source-row">
+      <span class="icon">🏛️</span>
+      <div>
+        <div class="name">PLACE / Chorus Pro — Marchés de l'État</div>
+        <div class="desc">La plateforme des achats de l'État. Le branchement est prêt, en attente d'accès officiel.</div>
+      </div>
+      <span class="pill pill-soon">⏳ Bientôt</span>
+    </div>
+    <div class="source-row">
+      <span class="icon">🗞️</span>
+      <div>
+        <div class="name">France Marchés, bailleurs du 13, presse BTP</div>
+        <div class="desc">Sources complémentaires pour ratisser large, ajoutées progressivement en phase 2.</div>
+      </div>
+      <span class="pill pill-soon">⏳ Phase 2</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section>
+  <div class="container">
+    <div class="kicker">Questions de patron</div>
+    <h2>On vous voit venir 😄</h2>
+    <details>
+      <summary>Je ne suis pas informaticien. C'est compliqué à utiliser ?</summary>
+      <p>Non. Vous ouvrez une page web, vous voyez la liste des affaires triées par score, vous cliquez sur celles qui vous intéressent. La configuration (zones, fréquence des alertes, destinataires) se règle avec des cases à cocher et des curseurs.</p>
+    </details>
+    <details>
+      <summary>Et si le robot se trompe et jette un bon marché ?</summary>
+      <p>Il est réglé pour être prudent : dans le doute, une annonce est classée « 🟠 À vérifier » plutôt que jetée. Vous gardez toujours la main — rien n'est supprimé, tout reste consultable.</p>
+    </details>
+    <details>
+      <summary>Ça remplace mon assistante / mon bureau d'études ?</summary>
+      <p>Non, ça leur enlève la corvée. Le radar fait l'écrémage ingrat (lire 200 annonces pour en garder 10). Vos équipes se concentrent sur ce qui a de la valeur : décider, chiffrer, répondre.</p>
+    </details>
+    <details>
+      <summary>Mes concurrents verront-ils ce que je surveille ?</summary>
+      <p>Non. L'application tourne chez vous (ou sur votre serveur). Vos mots-clés, vos zones et vos alertes ne sortent pas de l'entreprise.</p>
+    </details>
+    <details>
+      <summary>Combien ça coûte à faire tourner ?</summary>
+      <p>Le socle est open source. Les seuls coûts variables sont l'hébergement (quelques euros/mois) et, en option, l'analyse par intelligence artificielle (quelques centimes par lot d'annonces — débrayable, un mode 100 % règles est inclus).</p>
+    </details>
+  </div>
+</section>
+
+<!-- ============ CTA FINAL ============ -->
+<div class="final-cta">
+  <h2>Prêt à ne plus jamais dire<br>« on l'a vu trop tard » ? 🚀</h2>
+  <div class="cta-row" style="margin-top:1.5rem;">
+    <a href="https://github.com/wecanmoove/veille-ao-btp" class="btn btn-amber">Voir le projet sur GitHub</a>
+    <a href="deployment.html" class="btn btn-ghost" style="background: var(--navy); border: none;">Guide d'installation</a>
+  </div>
+</div>
+
+<footer>
+  <p>Veille AO BTP — MVP juillet 2026 · <a href="https://github.com/wecanmoove/veille-ao-btp/blob/main/README.md">Documentation technique pour les curieux</a></p>
+</footer>
+
+<script>
+/* ===== Compteurs animés des stat tiles ===== */
+const counters = document.querySelectorAll(".count");
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((e) => {
+    if (!e.isIntersecting || e.target.dataset.done) return;
+    e.target.dataset.done = "1";
+    const target = Number(e.target.dataset.target);
+    const dur = 900;
+    const t0 = performance.now();
+    const tick = (t) => {
+      const p = Math.min((t - t0) / dur, 1);
+      e.target.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}, { threshold: 0.4 });
+counters.forEach((c) => io.observe(c));
+
+/* ===== Démo interactive : jauge de score =====
+   Statuts : couleur TOUJOURS accompagnée d'un libellé + emoji (jamais couleur seule). */
+const DEMOS = [
+  {
+    score: 92, status: "good", label: "🟢 Foncez !",
+    explain: "Vocabulaire réhabilitation + codes travaux officiels (CPV division 45) + votre département. Le radar déclenche une alerte immédiate.",
+    chips: ["réhabilitation énergétique", "isolation", "CVC", "CPV travaux ✓", "dépt 13 ✓"]
+  },
+  {
+    score: 64, status: "info", label: "🔵 Intéressant",
+    explain: "Façade et étanchéité : clairement du second œuvre. Score solide, à regarder dans votre revue du matin.",
+    chips: ["ravalement", "façade", "étanchéité", "CPV travaux ✓"]
+  },
+  {
+    score: 28, status: "warn", label: "🟠 À vérifier",
+    explain: "Surtout de l'entretien, mais « petits aménagements » sème le doute. Le radar préfère vous le montrer que le jeter trop vite.",
+    chips: ["aménagement (faible)", "pas de CPV travaux", "signal ambigu"]
+  },
+  {
+    score: 4, status: "muted", label: "⚪ Passez",
+    explain: "Fournitures de bureau : aucun mot-clé BTP, aucun code travaux. Classé sans suite — vous ne le verrez même pas dans vos alertes.",
+    chips: ["fournitures détectées ✗", "aucun mot-clé BTP"]
+  }
+];
+const STATUS_COLORS = {
+  good:  { stroke: "#10b981", bg: "var(--good-bg)",  fg: "var(--good)"  },
+  info:  { stroke: "#0ea5e9", bg: "var(--info-bg)",  fg: "var(--info)"  },
+  warn:  { stroke: "#f59e0b", bg: "var(--warn-bg)",  fg: "var(--warn)"  },
+  muted: { stroke: "#94a3b8", bg: "var(--muted-bg)", fg: "var(--muted)" }
+};
+const ARC = 283; // longueur de l'arc semi-circulaire
+const gaugeFill = document.getElementById("gaugeFill");
+const gaugeScore = document.getElementById("gaugeScore");
+const verdict = document.getElementById("verdict");
+const explain = document.getElementById("explain");
+const chips = document.getElementById("chips");
+
+document.querySelectorAll(".demo-item").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".demo-item").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    const d = DEMOS[Number(btn.dataset.demo)];
+    const col = STATUS_COLORS[d.status];
+
+    gaugeFill.style.stroke = col.stroke;
+    gaugeFill.style.strokeDashoffset = String(ARC * (1 - d.score / 100));
+
+    // compteur du score
+    const from = Number(gaugeScore.textContent) || 0;
+    const t0 = performance.now();
+    const tick = (t) => {
+      const p = Math.min((t - t0) / 700, 1);
+      gaugeScore.textContent = Math.round(from + (d.score - from) * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+
+    verdict.textContent = d.label;
+    verdict.style.background = col.bg;
+    verdict.style.color = col.fg;
+    explain.textContent = d.explain;
+    chips.innerHTML = d.chips.map((c) => `<span class="chip">${c}</span>`).join("");
+  });
+});
+
+/* ===== Calculateur d'économies ===== */
+const hoursSlider = document.getElementById("hoursSlider");
+const rateSlider = document.getElementById("rateSlider");
+const AUTOMATED = 0.85, WEEKS = 45;
+function updateCalc() {
+  const h = Number(hoursSlider.value), r = Number(rateSlider.value);
+  document.getElementById("hoursVal").textContent = h;
+  document.getElementById("rateVal").textContent = r;
+  const hoursYear = Math.round(h * AUTOMATED * WEEKS);
+  const money = hoursYear * r;
+  document.getElementById("hoursSaved").textContent = hoursYear.toLocaleString("fr-FR") + " h";
+  document.getElementById("moneySaved").textContent = money.toLocaleString("fr-FR") + " €";
+}
+hoursSlider.addEventListener("input", updateCalc);
+rateSlider.addEventListener("input", updateCalc);
+updateCalc();
+</script>
 </body>
 </html>
