@@ -1,0 +1,17 @@
+# Optionnel : PostgreSQL pour la production.
+# docker compose up -d, puis DATABASE_URL="postgresql://veille:veille@localhost:5432/veille_ao_btp"
+# et provider = "postgresql" dans prisma/schema.prisma.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: veille
+      POSTGRES_PASSWORD: veille
+      POSTGRES_DB: veille_ao_btp
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
