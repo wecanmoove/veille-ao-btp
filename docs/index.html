@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veille AO BTP — Surveillance automatisée des appels d'offres</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #333; background: #f9f9f9; }
+        header { background: linear-gradient(135deg, #0b5ed7 0%, #0d6efd 100%); color: white; padding: 3rem 1rem; text-align: center; }
+        header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        header p { font-size: 1.1rem; opacity: 0.95; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+        section { margin: 3rem 0; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h2 { color: #0b5ed7; margin-bottom: 1rem; font-size: 1.8rem; }
+        h3 { color: #0d6efd; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        ul { margin-left: 2rem; }
+        li { margin-bottom: 0.5rem; }
+        code { background: #f4f4f4; padding: 0.25rem 0.5rem; border-radius: 4px; font-family: 'Courier New', monospace; }
+        pre { background: #f4f4f4; padding: 1rem; border-radius: 4px; overflow-x: auto; margin: 1rem 0; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0; }
+        .feature-card { padding: 1.5rem; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9; }
+        .feature-card h3 { margin-top: 0; }
+        .cta-buttons { display: flex; gap: 1rem; flex-wrap: wrap; margin: 2rem 0; }
+        .btn { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s; }
+        .btn-primary { background: #0b5ed7; color: white; }
+        .btn-primary:hover { background: #0a58ca; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5c636a; }
+        .tech-stack { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
+        .tech-badge { background: #e7f1ff; color: #0b5ed7; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 500; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        th { background: #f0f0f0; font-weight: 600; }
+        footer { text-align: center; padding: 2rem; color: #666; border-top: 1px solid #e0e0e0; margin-top: 3rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏗️ Veille AO BTP</h1>
+        <p>Plateforme de surveillance automatisée des appels d'offres du secteur du bâtiment et réhabilitation</p>
+    </header>
+
+    <div class="container">
+        <section>
+            <h2>🎯 Objectif</h2>
+            <p>
+                Détecter, qualifier et alerter <strong>automatiquement</strong> sur les appels d'offres pertinents dans les domaines :
+            </p>
+            <ul>
+                <li>Réhabilitation / Rénovation énergétique</li>
+                <li>Gros œuvre et second œuvre</li>
+                <li>Travaux tous corps d'état (TCE)</li>
+                <li>Maintenance / Entretien de bâtiments</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>✨ Fonctionnalités principales</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>📡 Collecte multi-sources</h3>
+                    <p>BOAMP (API réelle), PLACE, France Marchés (connecteurs prêts à brancher)</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🧠 Filtrage intelligent</h3>
+                    <p>Préfiltrage déterministe + scoring IA (OpenAI) avec fallback automatique en règles</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🔄 Dédoublonnage</h3>
+                    <p>Intra et inter-sources via hash normalisé pour une veille propre</p>
+                </div>
+                <div class="feature-card">
+                    <h3>⏰ Scheduler autonome</h3>
+                    <p>Cron configurable par source, verrou anti-chevauchement, historique complet</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📧 Alertes multi-canal</h3>
+                    <p>Email (Resend), Slack (webhook), anti-doublon d'alertes, mode instant/digest</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📊 Dashboard intuitif</h3>
+                    <p>Filtres multicritères, fiches détail, historique syncs et notifications</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>🚀 Démarrage rapide</h2>
+            <pre><code># Cloner
+git clone https://github.com/wecanmoove/veille-ao-btp.git
+cd veille-ao-btp
+
+# Installer
+npm install
+
+# Configurer
+cp .env.example .env
+# Éditer .env avec vos clés API
+
+# Initialiser la DB
+npm run db:push
+npm run db:seed
+
+# Lancer
+npm run dev
+# Visiter http://localhost:3000/ao</code></pre>
+            <div class="cta-buttons">
+                <a href="https://github.com/wecanmoove/veille-ao-btp" class="btn btn-primary">📘 Voir le code</a>
+                <a href="https://github.com/wecanmoove/veille-ao-btp#documentation" class="btn btn-secondary">📚 Documentation</a>
+            </div>
+        </section>
+
+        <section>
+            <h2>🏗️ Architecture</h2>
+            <h3>Stack technologique</h3>
+            <div class="tech-stack">
+                <span class="tech-badge">Next.js 16 (Frontend)</span>
+                <span class="tech-badge">Node.js (Backend)</span>
+                <span class="tech-badge">Prisma 6 (ORM)</span>
+                <span class="tech-badge">SQLite / PostgreSQL (DB)</span>
+                <span class="tech-badge">node-cron (Scheduler)</span>
+                <span class="tech-badge">OpenAI API (IA)</span>
+                <span class="tech-badge">TypeScript (Strict)</span>
+            </div>
+            <h3>Pipeline de traitement</h3>
+            <pre><code>Collecte → Normalisation → Dédoublonnage → Filtrage BTP
+          ↓
+Scoring (IA + Fallback) → Stockage → Alertes Email/Slack</code></pre>
+        </section>
+
+        <section>
+            <h2>🔗 Sources de données (Phase 1)</h2>
+            <table>
+                <tr>
+                    <th>Source</th>
+                    <th>État</th>
+                    <th>Type</th>
+                    <th>Fréquence</th>
+                </tr>
+                <tr>
+                    <td><strong>BOAMP</strong></td>
+                    <td>✅ Réel (API)</td>
+                    <td>API Opendatasoft</td>
+                    <td>Toutes les 4h</td>
+                </tr>
+                <tr>
+                    <td><strong>PLACE / Chorus Pro</strong></td>
+                    <td>⚠️ Mocké</td>
+                    <td>Structure prête</td>
+                    <td>2x par jour</td>
+                </tr>
+                <tr>
+                    <td><strong>France Marchés</strong></td>
+                    <td>⚠️ Mocké</td>
+                    <td>Structure prête</td>
+                    <td>1x par jour</td>
+                </tr>
+            </table>
+            <p><strong>Phase 2 (TODO)</strong> : Profils acheteurs du 13, presse spécialisée BTP, dédoublonnage avancé</p>
+        </section>
+
+        <section>
+            <h2>📊 Filtrage métier BTP</h2>
+            <h3>Pipeline 3 niveaux</h3>
+            <ol>
+                <li><strong>Préfiltrage déterministe</strong> : Mots-clés métier (30+), pondération CPV division 45</li>
+                <li><strong>Scoring IA</strong> : Analyse complète (titre, description, CPV, localisation) + classification</li>
+                <li><strong>Résultat final</strong> : Score (0-100), niveau (très_pertinent | pertinent | à_verifier | non_pertinent), catégorie travaux</li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>🧪 État du MVP</h2>
+            <ul>
+                <li>✅ Collecte multi-sources (BOAMP réelle + 2 mockées)</li>
+                <li>✅ Pipeline complet (normalisation → dedup → filtrage → scoring → stockage → alertes)</li>
+                <li>✅ Scheduler cron autonome avec verrou anti-chevauchement</li>
+                <li>✅ UI complète (dashboard, config, historique)</li>
+                <li>✅ Alertes email + Slack avec anti-doublon</li>
+                <li>✅ Mode IA (avec fallback automatique)</li>
+                <li>✅ Base de données & ORM (Prisma)</li>
+                <li>🔲 Intégration PLACE/Chorus Pro (structure prête, à brancher)</li>
+                <li>🔲 Profils acheteurs du 13 (Phase 2)</li>
+            </ul>
+            <p style="margin-top: 1.5rem; color: #666; font-style: italic;">
+                <strong>Fonctionnel et prêt pour intégration réelle et tests en conditions réelles.</strong>
+            </p>
+        </section>
+
+        <section>
+            <h2>📝 Commandes utiles</h2>
+            <pre><code>npm run dev              # Serveur dev
+npm run build            # Build production
+npm run typecheck        # Vérifier les types
+npm run lint             # ESLint
+npm run db:push          # Appliquer schéma Prisma
+npm run db:seed          # Charger données démo
+npm run sync             # Sync manuelle
+npm run sync boamp       # Sync d'une source</code></pre>
+        </section>
+
+        <section>
+            <h2>🤝 Contribution & Roadmap</h2>
+            <p>Architecture modulaire prête pour :</p>
+            <ul>
+                <li>Ajouter une nouvelle source (créer connecteur) : <code>src/server/connectors/[source].ts</code></li>
+                <li>Intégrer un nouveau canal d'alerte (Email, Slack, Teams, Make, etc.)</li>
+                <li>Étendre le scoring avec des règles métier plus fines</li>
+                <li>Améliorer le dédoublonnage inter-sources</li>
+            </ul>
+            <div class="cta-buttons">
+                <a href="https://github.com/wecanmoove/veille-ao-btp/issues" class="btn btn-secondary">💡 Issues & Feedback</a>
+                <a href="https://github.com/wecanmoove/veille-ao-btp/blob/main/README.md" class="btn btn-secondary">📖 README complet</a>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Veille AO BTP — MVP July 2026</p>
+        <p><a href="https://github.com/wecanmoove/veille-ao-btp" style="color: #0b5ed7; text-decoration: none;">GitHub Repository</a></p>
+    </footer>
+</body>
+</html>
