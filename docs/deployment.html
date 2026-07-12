@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veille AO BTP — Guide de déploiement GitHub Pages</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #333; background: #f9f9f9; line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+        h1 { color: #0b5ed7; margin-bottom: 1rem; font-size: 2.2rem; }
+        h2 { color: #0d6efd; margin-top: 2rem; margin-bottom: 0.8rem; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem; }
+        h3 { color: #0b5ed7; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        section { background: white; padding: 2rem; margin: 1.5rem 0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        code { background: #f4f4f4; padding: 0.25rem 0.5rem; border-radius: 4px; font-family: 'Courier New', monospace; }
+        pre { background: #2d2d2d; color: #f8f8f2; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
+        pre code { background: none; padding: 0; color: #f8f8f2; }
+        .highlight { background: #fff3cd; padding: 1rem; border-left: 4px solid #ffc107; border-radius: 4px; margin: 1rem 0; }
+        .success { background: #d4edda; padding: 1rem; border-left: 4px solid #28a745; border-radius: 4px; margin: 1rem 0; }
+        .step-number { display: inline-block; background: #0b5ed7; color: white; width: 2rem; height: 2rem; border-radius: 50%; text-align: center; line-height: 2rem; font-weight: bold; margin-right: 0.5rem; }
+        .command-box { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 1.5rem; margin: 1rem 0; }
+        ul, ol { margin-left: 2rem; }
+        li { margin-bottom: 0.5rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        th { background: #f0f0f0; font-weight: 600; }
+        .btn { display: inline-block; padding: 0.75rem 1.5rem; background: #0b5ed7; color: white; border-radius: 6px; text-decoration: none; font-weight: 600; }
+        .btn:hover { background: #0a58ca; }
+        .status-box { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+        .status-item { padding: 1rem; border-radius: 6px; }
+        .status-ok { background: #d4edda; border: 1px solid #28a745; }
+        .status-pending { background: #fff3cd; border: 1px solid #ffc107; }
+        footer { text-align: center; padding: 2rem; color: #666; border-top: 1px solid #e0e0e0; margin-top: 3rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Guide de déploiement — Veille AO BTP sur GitHub Pages</h1>
+
+        <section>
+            <h2>État actuel du projet</h2>
+            <div class="status-box">
+                <div class="status-item status-ok">
+                    <strong>✅ Code local</strong><br>
+                    3 commits, Git repo initialisé, prêt à pousser
+                </div>
+                <div class="status-item status-pending">
+                    <strong>⏳ GitHub</strong><br>
+                    Repo à créer, Pages à configurer
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>📋 Étapes pour publier sur GitHub Pages</h2>
+
+            <h3><span class="step-number">1</span> Créer le repo GitHub</h3>
+            <p>Allez sur <a href="https://github.com/new" target="_blank">github.com/new</a> ou utilisez la CLI :</p>
+            <div class="command-box">
+                <code>gh repo create veille-ao-btp --public --source=. --remote=origin --push</code>
+            </div>
+            <p><strong>Paramètres :</strong></p>
+            <ul>
+                <li>Repository name: <code>veille-ao-btp</code></li>
+                <li>Owner: <code>wecanmoove</code></li>
+                <li>Public (nécessaire pour GitHub Pages)</li>
+            </ul>
+
+            <h3><span class="step-number">2</span> Configurer le remote et pousser</h3>
+            <p>Si créé via l'interface web :</p>
+            <div class="command-box">
+<pre><code>cd ~/OneDrive/data_engineer_associate/veille-ao-btp
+git remote add origin https://github.com/wecanmoove/veille-ao-btp.git
+git branch -M main
+git push -u origin main</code></pre>
+            </div>
+
+            <h3><span class="step-number">3</span> Activer GitHub Pages</h3>
+            <p>Sur <strong>https://github.com/wecanmoove/veille-ao-btp/settings/pages</strong> :</p>
+            <ol>
+                <li>Section <strong>Pages</strong> (à gauche)</li>
+                <li><strong>Source</strong> : "Deploy from a branch"</li>
+                <li><strong>Branch</strong> : <code>main</code></li>
+                <li><strong>Folder</strong> : <code>/docs</code></li>
+                <li>Cliquer <strong>Save</strong></li>
+            </ol>
+            <div class="highlight">
+                <strong>⚠️ Important :</strong> GitHub Pages déploiera automatiquement le contenu de <code>/docs</code> après quelques minutes.
+            </div>
+
+            <h3><span class="step-number">4</span> Vérifier le déploiement</h3>
+            <p>Après 2-3 minutes, votre landing page sera accessible à :</p>
+            <div class="success">
+                <strong>🎉 https://wecanmoove.github.io/veille-ao-btp/</strong>
+            </div>
+        </section>
+
+        <section>
+            <h2>🔗 Accès au projet</h2>
+            <table>
+                <tr>
+                    <th>Ressource</th>
+                    <th>Lien</th>
+                </tr>
+                <tr>
+                    <td><strong>Code source</strong></td>
+                    <td><code>https://github.com/wecanmoove/veille-ao-btp</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Landing page</strong></td>
+                    <td><code>https://wecanmoove.github.io/veille-ao-btp/</code></td>
+                </tr>
+                <tr>
+                    <td><strong>README complet</strong></td>
+                    <td><code>https://github.com/wecanmoove/veille-ao-btp/blob/main/README.md</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Issues & Feedback</strong></td>
+                    <td><code>https://github.com/wecanmoove/veille-ao-btp/issues</code></td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>📂 Contenu du projet</h2>
+            <pre><code>veille-ao-btp/
+├── docs/
+│   ├── index.html              ← Landing page GitHub Pages
+│   └── deployment.html         ← Ce guide
+├── src/
+│   ├── app/                    ← Next.js app router (pages + API)
+│   │   ├── ao/                 ← Dashboard AO
+│   │   ├── config/             ← Configuration UI
+│   │   └── api/                ← Routes API (tenders, sync, notifications, etc.)
+│   ├── components/             ← Composants React (badges)
+│   └── server/                 ← Backend
+│       ├── connectors/         ← BOAMP (réel), PLACE, France Marchés (mockés)
+│       ├── pipeline/           ← Filtrage BTP, scoring, dédoublonnage
+│       ├── scheduler.ts        ← Scheduler cron autonome
+│       └── notifications/      ← Email, Slack
+├── prisma/
+│   ├── schema.prisma           ← Schéma DB (SQLite/PostgreSQL)
+│   └── seed.ts                 ← Données de démonstration
+├── scripts/
+│   └── sync.ts                 ← Commande sync manuelle CLI
+├── .env.example                ← Template configuration
+├── README.md                   ← Documentation complète
+└── GITHUB_SETUP.md             ← Instructions GitHub</code></pre>
+        </section>
+
+        <section>
+            <h2>🚀 Lancer l'application en local</h2>
+            <div class="command-box">
+<pre><code># Installer les dépendances
+npm install
+
+# Configurer l'environnement
+cp .env.example .env
+# Éditer .env avec vos clés API (OpenAI, Resend, Slack)
+
+# Initialiser la base de données
+npm run db:push
+npm run db:seed
+
+# Lancer le serveur dev
+npm run dev
+
+# Ouvrir http://localhost:3000/ao dans le navigateur</code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>✅ Checklist finale</h2>
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 6px;">
+                <input type="checkbox"> Repo GitHub créé (wecanmoove/veille-ao-btp, public)
+                <br><input type="checkbox"> Code poussé (branche main)
+                <br><input type="checkbox"> GitHub Pages activé (source: main, folder: /docs)
+                <br><input type="checkbox"> Landing page accessible (https://wecanmoove.github.io/veille-ao-btp/)
+                <br><input type="checkbox"> README vérifié (contient doc complète)
+                <br><input type="checkbox"> Tests locaux OK (npm run dev fonctionne)
+                <br><input type="checkbox"> Clés API configurées (.env)
+            </div>
+        </section>
+
+        <section>
+            <h2>📞 Support & Questions</h2>
+            <p><strong>En cas de problème :</strong></p>
+            <ul>
+                <li>Vérifier que le repo est <strong>public</strong> (Settings → Visibility)</li>
+                <li>GitHub Pages apparaît dans Settings seulement si le repo a du contenu</li>
+                <li>Le déploiement prend 2-3 minutes après activation</li>
+                <li>Vérifier le dossier <code>/docs</code> existe et contient <code>index.html</code></li>
+            </ul>
+            <a href="https://github.com/wecanmoove/veille-ao-btp/issues" class="btn">💬 Créer une issue</a>
+        </section>
+
+        <footer>
+            <p>Veille AO BTP — Guide de déploiement | July 2026</p>
+            <p><a href="index.html" style="color: #0b5ed7;">← Retour à la landing page</a></p>
+        </footer>
+    </div>
+</body>
+</html>
