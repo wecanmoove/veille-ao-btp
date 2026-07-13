@@ -1,13 +1,18 @@
-# Veille AO BTP — Système de surveillance automatisée des appels d'offres
+# 🏗️ Renov Midi — Veille Centralisée AO BTP
 
-Plateforme web de veille automatisée sur les appels d'offres du secteur du bâtiment, réhabilitation et travaux, avec scoring IA, alertes multi-canal et dédoublonnage inter-sources.
+Plateforme SaaS de **veille automatisée des appels d'offres publics BTP** pour la **Région Sud** (Marseille, Provence, Côte d'Azur), les **Alpes** (Annecy, Chambéry), et la **Suisse romande** (Genève, Vaud, Valais).
 
-## 🎯 Objectif
+**Collecte quotidienne** → **Scoring IA + règles** → **Alertes intelligentes** → **Dashboard exploitable en production**
 
-Détecter, qualifier et alerter automatiquement sur les **appels d'offres pertinents** dans les domaines :
-- Réhabilitation / rénovation énergétique
-- Gros œuvre et second œuvre
-- Travaux tous corps d'état (TCE)
+---
+
+## 📋 Couverture Géographique
+
+| Région | Codes | Sources | Statut |
+|--------|-------|---------|--------|
+| **🇫🇷 Région Sud** | 13, 83, 06, 05 | BOAMP API | ✅ Live |
+| **🇫🇷 Alpes** | 74, 73, 38 | BOAMP API | ✅ Live |
+| **🇨🇭 Suisse romande** | GE, VD, VS, NE, FR, JU | TED Europe API | ✅ Live |
 - Maintenance / entretien de bâtiments
 
 ## ✨ Fonctionnalités
