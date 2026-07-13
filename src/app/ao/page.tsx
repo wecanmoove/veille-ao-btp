@@ -12,6 +12,8 @@ interface TenderListItem {
   relevanceLevel: string;
   workCategory: string;
   departements: string[];
+  country: string;
+  zones: string[];
   deadlineAt: string | null;
   publishedAt: string | null;
   status: string;
@@ -21,6 +23,12 @@ interface TenderListItem {
 interface SourceOption {
   slug: string;
   name: string;
+}
+
+interface ZoneOption {
+  id: string;
+  label: string;
+  enabled: boolean;
 }
 
 const RELEVANCE_OPTIONS = [
@@ -46,6 +54,7 @@ export default function DashboardPage() {
   const [items, setItems] = useState<TenderListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [sources, setSources] = useState<SourceOption[]>([]);
+  const [zonesOptions, setZonesOptions] = useState<ZoneOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [source, setSource] = useState("");
@@ -53,6 +62,7 @@ export default function DashboardPage() {
   const [workCategory, setWorkCategory] = useState("");
   const [minScore, setMinScore] = useState("");
   const [departement, setDepartement] = useState("");
+  const [zone, setZone] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,16 +73,18 @@ export default function DashboardPage() {
     if (workCategory) params.set("workCategory", workCategory);
     if (minScore) params.set("minScore", minScore);
     if (departement) params.set("departement", departement);
+    if (zone) params.set("zone", zone);
     params.set("pageSize", "50");
     const res = await fetch(`/api/tenders?${params}`);
     const data = await res.json();
     setItems(data.items);
     setTotal(data.total);
     setLoading(false);
-  }, [q, source, relevanceLevel, workCategory, minScore, departement]);
+  }, [q, source, relevanceLevel, workCategory, minScore, departement, zone]);
 
   useEffect(() => {
     fetch("/api/sources").then((r) => r.json()).then(setSources);
+    fetch("/api/settings/zones").then((r) => r.json()).then(setZonesOptions);
   }, []);
 
   useEffect(() => {
@@ -82,9 +94,27 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Tableau de bord — Appels d&apos;offres</h1>
         <span className="text-sm text-slate-500">{total} annonce{total > 1 ? "s" : ""}</span>
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        <button
+          onClick={() => setZone("")}
+          className={`rounded-full px-3 py-1 text-sm font-medium border ${zone === "" ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"}`}
+        >
+          🌍 Toutes zones
+        </button>
+        {zonesOptions.map((z) => (
+          <button
+            key={z.id}
+            onClick={() => setZone(zone === z.id ? "" : z.id)}
+            className={`rounded-full px-3 py-1 text-sm font-medium border ${zone === z.id ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-300 hover:border-blue-400"}`}
+          >
+            📍 {z.label}
+          </button>
+        ))}
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-6">
@@ -159,7 +189,9 @@ export default function DashboardPage() {
                 <td className="px-4 py-3"><ScoreBadge score={t.score} /></td>
                 <td className="px-4 py-3"><RelevanceBadge level={t.relevanceLevel} /></td>
                 <td className="px-4 py-3"><CategoryBadge category={t.workCategory} /></td>
-                <td className="px-4 py-3 text-slate-600">{t.departements.join(", ") || "—"}</td>
+                <td className="px-4 py-3 text-slate-600">
+                  {t.country === "CH" ? "🇨🇭 " : ""}{t.departements.join(", ") || (t.country === "CH" ? "Suisse" : "—")}
+                </td>
                 <td className="px-4 py-3 text-slate-600">
                   {t.deadlineAt ? new Date(t.deadlineAt).toLocaleDateString("fr-FR") : "—"}
                 </td>

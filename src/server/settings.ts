@@ -10,6 +10,8 @@ const alertConfigSchema = z.object({
   mode: z.enum(["instant", "digest"]),
   digestCron: z.string(),
   includeAVerifier: z.boolean(),
+  /** N'alerter que si l'annonce est dans une zone de veille active. */
+  onlyWatchedZones: z.boolean().default(true),
 });
 
 export type AlertConfig = z.infer<typeof alertConfigSchema>;
@@ -25,6 +27,7 @@ function defaultAlertConfig(): AlertConfig {
     mode: env.ALERT_MODE,
     digestCron: env.ALERT_DIGEST_CRON,
     includeAVerifier: env.ALERT_INCLUDE_A_VERIFIER,
+    onlyWatchedZones: true,
   };
 }
 

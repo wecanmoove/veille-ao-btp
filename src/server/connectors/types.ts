@@ -5,7 +5,9 @@ export interface NormalizedNotice {
   buyer?: string;
   description?: string;
   cpvCodes: string[];
+  /** Départements FR ("13") ou cantons CH ("GE") selon `country`. */
   departements: string[];
+  country?: "FR" | "CH";
   city?: string;
   budgetEstime?: number | null;
   publishedAt?: Date | null;

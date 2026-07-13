@@ -1,4 +1,5 @@
 import type { NormalizedNotice, SourceConnector } from "./types";
+import { getWatchedFrDepartments } from "../zones";
 
 /**
  * Connecteur BOAMP — implémentation réelle.
@@ -89,12 +90,21 @@ function extractDescription(donneesRaw: string | null): string | undefined {
   return [...new Set(texts)].join("\n").slice(0, 4000);
 }
 
-async function fetchPage(since: Date, offset: number): Promise<{ total: number; results: BoampRecord[] }> {
+async function fetchPage(
+  since: Date,
+  offset: number,
+  departments: string[],
+): Promise<{ total: number; results: BoampRecord[] }> {
   const sinceStr = since.toISOString().slice(0, 10);
+  // Filtre géographique côté serveur : uniquement les départements des zones de veille FR actives.
+  const deptClause =
+    departments.length > 0
+      ? ` AND code_departement IN (${departments.map((d) => `"${d}"`).join(",")})`
+      : "";
   const params = new URLSearchParams({
     select:
       "idweb,objet,nomacheteur,code_departement,dateparution,datelimitereponse,type_procedure,nature_libelle,type_marche,descripteur_libelle,url_avis,donnees",
-    where: `dateparution >= date'${sinceStr}'`,
+    where: `dateparution >= date'${sinceStr}'${deptClause}`,
     order_by: "dateparution desc",
     limit: String(PAGE_SIZE),
     offset: String(offset),
@@ -122,6 +132,7 @@ function toNotice(r: BoampRecord): NormalizedNotice {
       .join("\n") || undefined,
     cpvCodes: extractCpvCodes(r.donnees),
     departements: r.code_departement ?? [],
+    country: "FR",
     budgetEstime: null,
     publishedAt: r.dateparution ? new Date(r.dateparution) : null,
     deadlineAt: r.datelimitereponse ? new Date(r.datelimitereponse) : null,
@@ -139,10 +150,11 @@ export const boampConnector: SourceConnector = {
   implementation: "reelle",
   defaultCron: "0 */4 * * *",
   async fetchSince(since: Date): Promise<NormalizedNotice[]> {
+    const departments = await getWatchedFrDepartments();
     const notices: NormalizedNotice[] = [];
     let offset = 0;
     for (let page = 0; page < MAX_PAGES; page++) {
-      const { total, results } = await fetchPage(since, offset);
+      const { total, results } = await fetchPage(since, offset, departments);
       for (const r of results) {
         // On ne garde que les avis d'appel à concurrence de type travaux OU sans type
         // (le filtrage métier fin est fait par le pipeline en aval).

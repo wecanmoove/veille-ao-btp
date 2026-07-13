@@ -39,7 +39,9 @@ model Tender {
   buyer            String?
   description      String?
   cpvCodesJson     String    @default("[]")
-  departementsJson String    @default("[]")
+  departementsJson String    @default("[]") // départements FR ou cantons CH selon country
+  country          String    @default("FR") // FR | CH
+  zonesJson        String    @default("[]") // ids des zones de veille correspondantes
   city             String?
   budgetEstime     Float?
   publishedAt      DateTime?

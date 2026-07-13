@@ -29,6 +29,12 @@ export async function GET(request: NextRequest) {
   const departement = sp.get("departement");
   if (departement) where.departementsJson = { contains: `"${departement}"` };
 
+  const zone = sp.get("zone");
+  if (zone) where.zonesJson = { contains: `"${zone}"` };
+
+  const country = sp.get("country");
+  if (country) where.country = country;
+
   const minScore = sp.get("minScore");
   if (minScore) where.score = { gte: Number(minScore) };
 

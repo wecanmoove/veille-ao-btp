@@ -9,6 +9,7 @@ import { scoreWithRules } from "./rules-scoring";
 import { scoreNotice } from "./ai-scoring";
 import { sendAlertsForTender, skipUnconfiguredChannels } from "../notifications/notification-service";
 import { getAlertConfig } from "../settings";
+import { getZones, matchZones } from "../zones";
 
 /** Verrou anti-chevauchement en mémoire (process unique Next.js). Un verrou par source. */
 const runningLocks = new Set<string>();
@@ -65,6 +66,7 @@ export async function runSync(sourceSlug: string, trigger: "cron" | "manual"): P
     });
     fetched = notices.length;
 
+    const zones = await getZones();
     let aiCallsUsed = 0;
 
     for (const notice of notices) {
@@ -103,6 +105,9 @@ export async function runSync(sourceSlug: string, trigger: "cron" | "manual"): P
         rejected++;
       }
 
+      const country = notice.country ?? "FR";
+      const matchedZones = matchZones(zones, { country, departements: notice.departements });
+
       const data = {
         sourceId: source.id,
         sourceRef: notice.sourceRef,
@@ -112,6 +117,8 @@ export async function runSync(sourceSlug: string, trigger: "cron" | "manual"): P
         description: notice.description,
         cpvCodesJson: JSON.stringify(notice.cpvCodes),
         departementsJson: JSON.stringify(notice.departements),
+        country,
+        zonesJson: JSON.stringify(matchedZones),
         city: notice.city,
         budgetEstime: notice.budgetEstime ?? null,
         publishedAt: notice.publishedAt ?? null,

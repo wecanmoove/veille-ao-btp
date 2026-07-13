@@ -7,5 +7,7 @@ export function serializeTender(t: Tender) {
     cpvCodes: JSON.parse(t.cpvCodesJson) as string[],
     departements: JSON.parse(t.departementsJson) as string[],
     keywords: JSON.parse(t.keywordsJson) as string[],
+    zones: JSON.parse(t.zonesJson) as string[],
+    country: t.country || "FR",
   };
 }

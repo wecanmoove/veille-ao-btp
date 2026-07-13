@@ -11,9 +11,16 @@ import type { NotificationProvider } from "./types";
 const providers: NotificationProvider[] = [emailProvider, slackProvider];
 
 /** Une annonce doit-elle déclencher une alerte selon les seuils configurés (base > env) ? */
-export function isAlertable(tender: Pick<Tender, "score" | "relevanceLevel">, config: AlertConfig): boolean {
+export function isAlertable(
+  tender: Pick<Tender, "score" | "relevanceLevel" | "zonesJson">,
+  config: AlertConfig,
+): boolean {
   if (tender.relevanceLevel === "non_pertinent") return false;
   if (tender.relevanceLevel === "a_verifier" && !config.includeAVerifier) return false;
+  if (config.onlyWatchedZones) {
+    const zones = JSON.parse(tender.zonesJson) as string[];
+    if (zones.length === 0) return false;
+  }
   return tender.score >= config.minScore;
 }
 
