@@ -2,6 +2,9 @@ import type { NormalizedNotice } from "../connectors/types";
 import { findExclusionHints, findMatchedKeywords, isRehabCpv, isTravauxCpv } from "./btp-keywords";
 import type { RelevanceLevel, ScoringResult, WorkCategory } from "./types";
 
+/** Territoire prioritaire du client : Aix-Marseille (13) d'abord, puis le reste de la Région Sud. */
+const PRIORITY_DEPARTMENTS: Record<string, number> = { "13": 8, "83": 4, "06": 4, "05": 4 };
+
 /**
  * Filtrage métier BTP — mode fallback sans IA (déterministe).
  * Utilisé si OPENAI_API_KEY absente, si l'appel IA échoue, ou en préfiltrage
@@ -36,6 +39,14 @@ export function scoreWithRules(notice: NormalizedNotice): ScoringResult {
     score -= 40;
   }
 
+  // Bonus territoire prioritaire (Aix-Marseille en tête) — uniquement si signal BTP présent,
+  // pour ne pas remonter du hors-sujet local.
+  let priorityBonus = 0;
+  if ((matchedKeywords.length > 0 || travauxCpv.length > 0) && (notice.country ?? "FR") === "FR") {
+    priorityBonus = Math.max(0, ...notice.departements.map((d) => PRIORITY_DEPARTMENTS[d] ?? 0));
+    score += priorityBonus;
+  }
+
   score = Math.max(0, Math.min(100, Math.round(score)));
 
   let relevanceLevel: RelevanceLevel;
@@ -62,7 +73,8 @@ export function scoreWithRules(notice: NormalizedNotice): ScoringResult {
     relevanceLevel === "non_pertinent"
       ? exclusionReason ?? "Aucun signal BTP détecté"
       : `Score règles: ${score}/100. Mots-clés: ${matchedKeywords.slice(0, 5).join(", ") || "aucun"}. ` +
-        `CPV travaux (div. 45): ${travauxCpv.join(", ") || "aucun"}.`;
+        `CPV travaux (div. 45): ${travauxCpv.join(", ") || "aucun"}.` +
+        (priorityBonus > 0 ? ` Bonus territoire prioritaire (+${priorityBonus}).` : "");
 
   return {
     score,
