@@ -150,6 +150,7 @@ export async function runDigest(): Promise<number> {
           <span style="color:#64748b; font-size:12px;">${esc(t.buyer ?? "Acheteur non renseigné")}</span></td>
         <td style="padding:8px 10px; white-space:nowrap;">${lieu}</td>
         <td style="padding:8px 10px; white-space:nowrap;">${limite}</td>
+        <td style="padding:8px 10px; white-space:nowrap;"><a href="${env.APP_BASE_URL}/ao/${t.id}" style="color:#0f766e; font-weight:600; text-decoration:none;">🔗</a></td>
       </tr>`;
     })
     .join("");
@@ -168,7 +169,7 @@ export async function runDigest(): Promise<number> {
           : `<p><strong>${top.length}</strong> opportunité${top.length > 1 ? "s" : ""} détectée${top.length > 1 ? "s" : ""} cette semaine (score ≥ ${config.minScore}) :</p>
       <table cellspacing="0" cellpadding="0" style="width:100%; border-collapse:collapse; font-size:14px;">
         <tr style="text-align:left; border-bottom:2px solid #e2e8f0;">
-          <th style="padding:8px 10px;">Score</th><th style="padding:8px 10px;">Annonce</th><th style="padding:8px 10px;">Lieu</th><th style="padding:8px 10px;">Limite</th>
+          <th style="padding:8px 10px;">Score</th><th style="padding:8px 10px;">Annonce</th><th style="padding:8px 10px;">Lieu</th><th style="padding:8px 10px;">Limite</th><th style="padding:8px 10px; text-align:center;">Lien</th>
         </tr>
         ${rowsHtml}
       </table>`
