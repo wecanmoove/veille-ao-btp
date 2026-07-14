@@ -47,6 +47,42 @@ function escapeHtml(s: string): string {
 }
 
 /**
+ * Envoi d'un email libre (rapports, digests) via le même transport que les alertes :
+ * Resend si configuré, sinon journalisation console (mode dev).
+ */
+export async function sendEmail(opts: {
+  to: string[];
+  subject: string;
+  html: string;
+  text: string;
+}): Promise<SendResult> {
+  if (opts.to.length === 0) return { ok: false, error: "Aucun destinataire email configuré" };
+
+  if (env.EMAIL_PROVIDER === "console") {
+    console.log(`[email:console] À: ${opts.to.join(", ")} | Sujet: ${opts.subject}\n${opts.text}`);
+    return { ok: true };
+  }
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ from: env.EMAIL_FROM, to: opts.to, subject: opts.subject, html: opts.html, text: opts.text }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) {
+      return { ok: false, error: `Resend HTTP ${res.status}: ${(await res.text()).slice(0, 300)}` };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
  * Provider email. EMAIL_PROVIDER=resend envoie réellement via l'API Resend.
  * EMAIL_PROVIDER=console (défaut dev) journalise le contenu sans envoyer.
  */
