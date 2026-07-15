@@ -144,13 +144,14 @@ export async function runDigest(): Promise<number> {
       const lieu = `${t.country === "CH" ? "🇨🇭 " : ""}${depts || "—"}`;
       const limite = t.deadlineAt ? new Date(t.deadlineAt).toLocaleDateString("fr-FR") : "—";
       const scoreColor = t.score >= 70 ? "#047857" : "#0369a1";
+      const linkUrl = t.sourceUrl || `${env.APP_BASE_URL}/ao/${t.id}`;
       return `<tr style="background:${i % 2 ? "#f8fafc" : "#ffffff"};">
         <td style="padding:8px 10px; font-weight:bold; color:${scoreColor}; white-space:nowrap;">${t.score}/100</td>
-        <td style="padding:8px 10px;"><a href="${env.APP_BASE_URL}/ao/${t.id}" style="color:#0f766e; font-weight:600;">${esc(t.title)}</a><br>
+        <td style="padding:8px 10px;"><a href="${linkUrl}" style="color:#0f766e; font-weight:600;">${esc(t.title)}</a><br>
           <span style="color:#64748b; font-size:12px;">${esc(t.buyer ?? "Acheteur non renseigné")}</span></td>
         <td style="padding:8px 10px; white-space:nowrap;">${lieu}</td>
         <td style="padding:8px 10px; white-space:nowrap;">${limite}</td>
-        <td style="padding:8px 10px; white-space:nowrap;"><a href="${env.APP_BASE_URL}/ao/${t.id}" style="color:#0f766e; font-weight:600; text-decoration:none;">🔗</a></td>
+        <td style="padding:8px 10px; white-space:nowrap;"><a href="${linkUrl}" style="color:#0f766e; font-weight:600; text-decoration:none;">🔗</a></td>
       </tr>`;
     })
     .join("");
@@ -174,7 +175,7 @@ export async function runDigest(): Promise<number> {
         ${rowsHtml}
       </table>`
       }
-      <p style="margin-top:20px;"><a href="${env.APP_BASE_URL}/ao" style="display:inline-block; background:#f97316; color:#ffffff; padding:10px 18px; border-radius:8px; text-decoration:none; font-weight:bold;">Ouvrir le tableau de bord</a></p>
+      <p style="margin-top:20px;"><a href="${env.APP_BASE_URL}/ao" style="display:inline-block; background:#f97316; color:#ffffff; padding:10px 18px; border-radius:8px; text-decoration:none; font-weight:bold;">Plus de détails sur Renov Midi</a></p>
     </div>
     <div style="padding:12px 24px; background:#f8fafc; color:#94a3b8; font-size:11px;">Rapport automatique Renov Midi — fréquence et seuil réglables dans Configuration.</div>
   </div>
@@ -185,9 +186,11 @@ export async function runDigest(): Promise<number> {
     `${top.length} opportunité(s) BTP au-dessus du seuil ${config.minScore}/100 :`,
     "",
     ...top.map(
-      (t) =>
-        `- [${t.score}/100] ${t.title} — ${t.buyer ?? "?"} (${(JSON.parse(t.departementsJson) as string[]).join(", ")})` +
-        `${t.deadlineAt ? ` — limite ${new Date(t.deadlineAt).toLocaleDateString("fr-FR")}` : ""}\n  ${env.APP_BASE_URL}/ao/${t.id}`,
+      (t) => {
+        const linkUrl = t.sourceUrl || `${env.APP_BASE_URL}/ao/${t.id}`;
+        return `- [${t.score}/100] ${t.title} — ${t.buyer ?? "?"} (${(JSON.parse(t.departementsJson) as string[]).join(", ")})` +
+          `${t.deadlineAt ? ` — limite ${new Date(t.deadlineAt).toLocaleDateString("fr-FR")}` : ""}\n  ${linkUrl}`;
+      }
     ),
     "",
     `Tableau de bord : ${env.APP_BASE_URL}/ao`,
