@@ -17,6 +17,44 @@ interface SourceRow {
   locked: boolean;
 }
 
+const EXTERNAL_SOURCES: { category: string; items: { name: string; url: string; note?: string }[] }[] = [
+  {
+    category: "Plateformes nationales généralistes",
+    items: [
+      { name: "BOAMP (officiel Journal Officiel)", url: "https://boamp.fr" },
+      { name: "France Marchés", url: "https://francemarches.com" },
+      { name: "Marchés Online", url: "https://marchesonline.com" },
+      { name: "E-marchespublics", url: "https://e-marchespublics.com" },
+      { name: "Marchés Sécurisés", url: "https://marches-securises.fr" },
+      { name: "Achat Public", url: "https://achatpublic.com" },
+      { name: "Klekoon", url: "https://klekoon.com" },
+      { name: "AWS Achat", url: "https://aws-achat.com" },
+    ],
+  },
+  {
+    category: "Bailleurs sociaux du 13",
+    items: [
+      { name: "Vilogia", url: "https://vilogia.fr", note: "Espace Fournisseur" },
+      { name: "Erilia", url: "https://erilia.fr", note: "Appels d'offres" },
+      { name: "Logirem", url: "https://logirem.fr", note: "Fournisseurs" },
+      { name: "Unicil", url: "https://unicil.fr", note: "Marchés" },
+      { name: "13 Habitat", url: "https://13habitat.fr", note: "Marchés publics" },
+      { name: "Marseille Habitat", url: "https://marseillehabitat.fr" },
+      { name: "Provence Métropole Logement", url: "https://provencemetropolelogement.fr" },
+      { name: "SAEM Marseille Habitat", url: "https://marseillehabitat.fr" },
+    ],
+  },
+  {
+    category: "Institutionnels PACA / Marseille",
+    items: [
+      { name: "SPLA-IN AMP", url: "https://splain-amp.fr" },
+      { name: "Région SUD", url: "https://achat.maregionsud.fr" },
+      { name: "Métropole AMP", url: "https://ampmetropole.fr" },
+      { name: "Ville de Marseille", url: "https://marseille.fr", note: "marchés publics" },
+    ],
+  },
+];
+
 interface AlertConfig {
   emailEnabled: boolean;
   slackEnabled: boolean;
@@ -214,6 +252,37 @@ export default function ConfigPage() {
             </div>
           </div>
         )}
+      </section>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-6">
+        <h2 className="text-lg font-semibold text-slate-900">Sources complémentaires — veille manuelle</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Ces plateformes n&apos;ont pas d&apos;API publique exploitable (accès conventionné, agrégateur commercial ou
+          site institutionnel) : elles ne sont donc pas synchronisées automatiquement. Liens directs pour une
+          vérification manuelle rapide de vos AO TCE réhabilitation dans le 13.
+        </p>
+        <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {EXTERNAL_SOURCES.map((group) => (
+            <div key={group.category}>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">{group.category}</h3>
+              <ul className="mt-2 space-y-1.5">
+                {group.items.map((item) => (
+                  <li key={item.url + item.name}>
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-blue-700 hover:underline"
+                    >
+                      {item.name}
+                    </a>
+                    {item.note && <span className="ml-1.5 text-xs text-slate-400">({item.note})</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-6">

@@ -43,7 +43,8 @@ function seededNotices(since: Date): NormalizedNotice[] {
       deadlineAt: new Date(publishedAt.getTime() + 30 * 24 * 3600_000),
       procedureType: "OUVERT",
       natureLibelle: "Avis de marché",
-      sourceUrl: "https://www.marches-publics.gouv.fr/",
+      // Connecteur mocké : pas d'URL directe réelle (pas de portail homepage trompeur non plus).
+      sourceUrl: undefined,
     };
   }).filter((n): n is NormalizedNotice => n !== null);
 }
