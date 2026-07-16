@@ -72,6 +72,7 @@ export async function bootstrapScheduler(): Promise<void> {
   bootstrapped = true;
 
   for (const connector of connectors) {
+    const mock = connector.implementation === "mockee";
     await prisma.source.upsert({
       where: { slug: connector.slug },
       update: {},
@@ -80,8 +81,10 @@ export async function bootstrapScheduler(): Promise<void> {
         name: connector.name,
         kind: connector.kind,
         implementation: connector.implementation,
-        status: connector.implementation === "mockee" ? "mocke" : "actif",
+        status: mock ? "mocke" : "actif",
         cronExpression: connector.defaultCron,
+        // Aucune donnée simulée : les connecteurs sans API réelle naissent désactivés.
+        enabled: !mock,
       },
     });
   }
