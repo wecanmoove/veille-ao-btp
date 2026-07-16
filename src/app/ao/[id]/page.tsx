@@ -88,7 +88,13 @@ export default async function TenderDetailPage({ params }: { params: Promise<{ i
           </div>
         )}
 
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href={`/ao/${t.id}/reponse`}
+            className="rounded-md bg-teal-700 px-4 py-2 text-sm font-bold text-white hover:bg-teal-600"
+          >
+            📝 Préparer ma réponse
+          </Link>
           {t.sourceUrl && (
             <a href={t.sourceUrl} target="_blank" rel="noopener noreferrer" className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
               Voir la source d&apos;origine
