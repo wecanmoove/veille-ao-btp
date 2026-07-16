@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AlertKit } from "@/components/alert-kit";
 
 /**
  * Annuaire de veille manuelle : sites réels où trouver des AO TCE/réhabilitation
@@ -11,6 +12,7 @@ interface SourceLink {
   url: string;
   note: string;
   auto?: "api" | "attente";
+  alerte?: string;
 }
 
 const SECTIONS: { title: string; icon: string; links: SourceLink[] }[] = [
@@ -20,14 +22,14 @@ const SECTIONS: { title: string; icon: string; links: SourceLink[] }[] = [
     links: [
       { name: "BOAMP", url: "https://www.boamp.fr", note: "Journal officiel des marchés publics — collecté automatiquement toutes les 4 h.", auto: "api" },
       { name: "TED Europe", url: "https://ted.europa.eu/fr/", note: "Marchés européens et suisses — collecté automatiquement 2×/jour.", auto: "api" },
-      { name: "PLACE (marches-publics.gouv.fr)", url: "https://www.marches-publics.gouv.fr", note: "Plateforme de l'État — API en attente de convention AIFE.", auto: "attente" },
-      { name: "France Marchés", url: "https://www.francemarches.com", note: "Agrégateur de la presse quotidienne régionale.", auto: "attente" },
-      { name: "Marchés Online", url: "https://www.marchesonline.com", note: "Agrégateur Groupe Moniteur — alertes email gratuites." },
-      { name: "E-marchespublics", url: "https://www.e-marchespublics.com", note: "Profil acheteur de nombreuses collectivités du Sud." },
-      { name: "Marchés Sécurisés", url: "https://www.marches-securises.fr", note: "Profil acheteur utilisé par des communes des Bouches-du-Rhône." },
-      { name: "Achat Public", url: "https://www.achatpublic.com", note: "Profil acheteur de grandes collectivités et bailleurs." },
-      { name: "Klekoon", url: "https://www.klekoon.com", note: "Plateforme de dématérialisation — consultation gratuite des avis." },
-      { name: "AWS Achat", url: "https://www.marches-publics.info", note: "AWS-Achat / marches-publics.info — profil acheteur répandu en PACA." },
+      { name: "PLACE (marches-publics.gouv.fr)", url: "https://www.marches-publics.gouv.fr", note: "Plateforme de l'État — API en attente de convention AIFE.", auto: "attente", alerte: "Compte entreprise gratuit → « Mes recherches sauvegardées » → alerte email quotidienne." },
+      { name: "France Marchés", url: "https://www.francemarches.com", note: "Agrégateur de la presse quotidienne régionale.", auto: "attente", alerte: "Bouton « Créer une alerte » sur la page de recherche — sans compte, juste l'email." },
+      { name: "Marchés Online", url: "https://www.marchesonline.com", note: "Agrégateur Groupe Moniteur.", alerte: "Compte gratuit → « Mes alertes » → coller mots-clés + départements du kit." },
+      { name: "E-marchespublics", url: "https://www.e-marchespublics.com", note: "Profil acheteur de nombreuses collectivités du Sud.", alerte: "Inscription entreprise gratuite → « Veille » → critères CPV 45 + départements." },
+      { name: "Marchés Sécurisés", url: "https://www.marches-securises.fr", note: "Profil acheteur utilisé par des communes des Bouches-du-Rhône.", alerte: "Compte entreprise → recherche sauvegardée avec notification email." },
+      { name: "Achat Public", url: "https://www.achatpublic.com", note: "Profil acheteur de grandes collectivités et bailleurs.", alerte: "Compte gratuit → « Mes alertes » sur la salle des marchés." },
+      { name: "Klekoon", url: "https://www.klekoon.com", note: "Plateforme de dématérialisation — consultation gratuite des avis.", alerte: "Compte gratuit → alertes AO par mots-clés et département." },
+      { name: "AWS Achat", url: "https://www.marches-publics.info", note: "AWS-Achat / marches-publics.info — profil acheteur répandu en PACA.", alerte: "Compte entreprise AWS → « Veille automatique » par CPV et localisation." },
     ],
   },
   {
@@ -70,6 +72,8 @@ export default function SourcesPage() {
         </p>
       </div>
 
+      <AlertKit />
+
       {SECTIONS.map((section) => (
         <section key={section.title} className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           <h2 className="border-b border-slate-200 px-5 py-4 font-bold text-slate-900 dark:border-slate-800 dark:text-white">
@@ -100,6 +104,9 @@ export default function SourcesPage() {
                     )}
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">{l.note}</p>
+                  {l.alerte && (
+                    <p className="mt-0.5 text-xs text-orange-700 dark:text-orange-300">🔔 {l.alerte}</p>
+                  )}
                 </div>
               </li>
             ))}
