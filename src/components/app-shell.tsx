@@ -47,6 +47,12 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+
+  // La page de connexion (/auth) ne doit pas afficher la navigation de l'app :
+  // elle est accessible sans session, avant que l'utilisateur ait le droit
+  // de voir le contenu que ce menu permet d'atteindre.
+  if (pathname === "/auth") return <>{children}</>;
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
