@@ -1,0 +1,21 @@
+
+> veille-ao-btp@0.1.0 start
+> next start
+
+▲ Next.js 16.2.10
+- Local:         http://localhost:3000
+- Network:       http://10.5.0.2:3000
+✓ Ready in 4.1s
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\chris\package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * C:\Users\chris\OneDrive\data_engineer_associate\veille-ao-btp\package-lock.json
+
+[2026-07-20T12:33:10.175Z] [scheduler] Planifié boamp sur "0 */4 * * *" (Europe/Paris)
+[2026-07-20T12:33:10.180Z] [scheduler] Planifié ted-suisse sur "0 6,18 * * *" (Europe/Paris)
+[2026-07-20T12:33:10.182Z] [scheduler] Planifié ted-france sur "0 7,19 * * *" (Europe/Paris)
+[2026-07-20T12:33:10.190Z] [scheduler] Digest d'alertes planifié sur "0 8 * * 1"
+[2026-07-20T12:33:10.190Z] [scheduler] Scheduler démarré
+[2026-07-20T14:00:13.484Z] [sync] boamp: 58 récupérées, 47 nouvelles, 1 doublons, 17 rejetées, 0 alertes

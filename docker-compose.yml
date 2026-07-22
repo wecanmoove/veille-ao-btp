@@ -1,17 +1,35 @@
-# Optionnel : PostgreSQL pour la production.
-# docker compose up -d, puis DATABASE_URL="postgresql://veille:veille@localhost:5432/veille_ao_btp"
-# et provider = "postgresql" dans prisma/schema.prisma.
+version: "3.8"
+
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: veille
-      POSTGRES_PASSWORD: veille
-      POSTGRES_DB: veille_ao_btp
+  renov-midi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: renov-midi
+    restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "3000:3000"
+    environment:
+      # Database (SQLite in persistent volume)
+      DATABASE_URL: "file:/app/data/renov-midi.db"
+      # Session
+      SESSION_SECRET: "${SESSION_SECRET:-96aeffa02d010b4c61812333154f4c60}"
+      # Optional: tunnel password (remove for local testing)
+      # TUNNEL_PASSWORD: "your-secure-password"
+      # Environment
+      NODE_ENV: "production"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # Persistent SQLite database
+      - renov-midi-data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      com.example.description: "Renov Midi - Veille AO BTP"
 
 volumes:
-  pgdata:
+  renov-midi-data:
+    driver: local
