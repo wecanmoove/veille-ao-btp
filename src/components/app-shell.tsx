@@ -1,9 +1,37 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandMark } from "./logo";
+
+function useCurrentUser() {
+  const [user, setUser] = useState<{ username: string; role: "admin" | "restricted" } | null>(null);
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setUser)
+      .catch(() => setUser(null));
+  }, []);
+  return user;
+}
+
+function UserBadge() {
+  const user = useCurrentUser();
+  if (!user) return null;
+  return (
+    <div className="flex items-center justify-between gap-2 border-t border-slate-200 px-5 py-3 text-xs dark:border-slate-800">
+      <span className="text-slate-500 dark:text-slate-400">
+        👤 {user.username} <span className="text-slate-400">· {user.role === "admin" ? "admin" : "restreint"}</span>
+      </span>
+      <form action="/api/auth/logout" method="POST">
+        <button type="submit" className="font-semibold text-teal-700 hover:underline dark:text-teal-400">
+          Déconnexion
+        </button>
+      </form>
+    </div>
+  );
+}
 
 const NAV = [
   { href: "/", label: "Accueil", icon: "🏠" },
@@ -65,6 +93,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="border-t border-slate-200 px-5 py-4 text-xs text-slate-400 dark:border-slate-800 dark:text-slate-500">
           Aix-Marseille · Région Sud · Alpes · Suisse romande
         </div>
+        <UserBadge />
       </aside>
 
       {/* Drawer mobile */}

@@ -69,18 +69,39 @@ export default async function AuthPage({
               marginBottom: 14,
             }}
           >
-            Mot de passe incorrect.
+            Identifiant ou mot de passe incorrect.
           </div>
         )}
 
         <input type="hidden" name="next" value={next} />
+        <label style={{ color: "#cbd5e1", fontSize: 13, display: "block", marginBottom: 6 }}>
+          Identifiant
+        </label>
+        <input
+          type="text"
+          name="username"
+          autoFocus
+          required
+          autoCapitalize="none"
+          autoCorrect="off"
+          style={{
+            width: "100%",
+            boxSizing: "border-box",
+            padding: "11px 12px",
+            borderRadius: 8,
+            border: "1px solid rgba(255,255,255,0.15)",
+            background: "#020617",
+            color: "#fff",
+            fontSize: 15,
+            marginBottom: 16,
+          }}
+        />
         <label style={{ color: "#cbd5e1", fontSize: 13, display: "block", marginBottom: 6 }}>
           Mot de passe
         </label>
         <input
           type="password"
           name="password"
-          autoFocus
           required
           style={{
             width: "100%",

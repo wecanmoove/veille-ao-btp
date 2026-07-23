@@ -1,9 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/server/db";
 import { runSync } from "@/server/pipeline/run-sync";
+import { isAdmin } from "@/lib/auth";
 
 /** POST /api/sync — déclenche une synchronisation manuelle de toutes les sources actives ("bouton punch"). */
-export async function POST() {
+export async function POST(req: NextRequest) {
+  if (!isAdmin(req.headers)) {
+    return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
+  }
+
   const sources = await prisma.source.findMany({ where: { enabled: true } });
 
   const totals = { fetched: 0, inserted: 0, duplicates: 0, rejected: 0, alertsSent: 0 };

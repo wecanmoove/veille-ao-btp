@@ -1,15 +1,22 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/server/db";
 import { serializeTender } from "@/server/serialize";
+import { sessionFromHeaders } from "@/lib/auth";
+import type { Prisma } from "@prisma/client";
 
 /** GET /api/stats — KPI du tableau de bord (calculés en direct sur la base). */
-export async function GET() {
+export async function GET(req: NextRequest) {
   const now = Date.now();
   const in14d = new Date(now + 14 * 24 * 3600_000);
   const since7d = new Date(now - 7 * 24 * 3600_000);
 
+  const session = sessionFromHeaders(req.headers);
+  // Compte restreint : aucune annonce suisse ne doit apparaître dans les KPI ni le top.
+  const restrictedWhere: Prisma.TenderWhereInput = session?.role === "restricted" ? { country: "FR" } : {};
+
   const [tenders, topTenders] = await Promise.all([
     prisma.tender.findMany({
+      where: restrictedWhere,
       select: {
         relevanceLevel: true,
         workCategory: true,
@@ -23,7 +30,7 @@ export async function GET() {
       },
     }),
     prisma.tender.findMany({
-      where: { relevanceLevel: { in: ["tres_pertinent", "pertinent"] } },
+      where: { ...restrictedWhere, relevanceLevel: { in: ["tres_pertinent", "pertinent"] } },
       include: { source: true },
       orderBy: [{ score: "desc" }, { publishedAt: "desc" }],
       take: 5,

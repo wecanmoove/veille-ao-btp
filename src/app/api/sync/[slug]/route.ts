@@ -1,8 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { runSync } from "@/server/pipeline/run-sync";
+import { isAdmin } from "@/lib/auth";
 
 /** POST /api/sync/[slug] — déclenche une synchronisation manuelle pour une source. */
-export async function POST(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+  if (!isAdmin(req.headers)) {
+    return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
+  }
   const { slug } = await params;
   try {
     const result = await runSync(slug, "manual");

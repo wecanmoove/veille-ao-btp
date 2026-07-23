@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { textToDocxBuffer, textToPdfBuffer } from "@/server/reponse/export";
+import { isAdmin } from "@/lib/auth";
 
 /** POST /api/reponse/export — convertit le texte édité (lettre ou mémoire) en .docx ou .pdf réel. */
 export async function POST(req: NextRequest) {
+  if (!isAdmin(req.headers)) {
+    return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
+  }
   const body = await req.json().catch(() => null);
   const title = String(body?.title ?? "");
   const content = String(body?.content ?? "");

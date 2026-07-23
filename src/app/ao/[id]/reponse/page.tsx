@@ -63,11 +63,16 @@ export default function ReponsePage({ params }: { params: Promise<{ id: string }
   const [exportingLettre, setExportingLettre] = useState<"docx" | "pdf" | null>(null);
   const [exportingMemoire, setExportingMemoire] = useState<"docx" | "pdf" | null>(null);
   const [exportingZip, setExportingZip] = useState(false);
+  const [forbidden, setForbidden] = useState(false);
 
   useEffect(() => {
     fetch(`/api/tenders/${id}/reponse`)
-      .then((r) => r.json())
-      .then((p: Pack) => {
+      .then(async (r) => {
+        if (r.status === 403) {
+          setForbidden(true);
+          return;
+        }
+        const p: Pack = await r.json();
         setPack(p);
         setLettre(p.lettre);
         setMemoire(p.memoire);
@@ -97,6 +102,19 @@ export default function ReponsePage({ params }: { params: Promise<{ id: string }
     await navigator.clipboard.writeText(content);
     setCopied(label);
     setTimeout(() => setCopied(null), 2000);
+  }
+
+  if (forbidden) {
+    return (
+      <div className="mx-auto max-w-md space-y-3 text-center">
+        <p className="text-4xl">🔒</p>
+        <p className="font-semibold text-slate-800 dark:text-slate-200">Accès non autorisé</p>
+        <p className="text-sm text-slate-500">Votre compte n&apos;a pas les droits pour préparer une réponse aux AO.</p>
+        <Link href={`/ao/${id}`} className="text-sm text-teal-700 hover:underline dark:text-teal-400">
+          &larr; Retour à l&apos;annonce
+        </Link>
+      </div>
+    );
   }
 
   if (!pack) return <p className="text-sm text-slate-400">Génération du dossier…</p>;

@@ -123,6 +123,14 @@ model ErrorLog {
   @@index([createdAt])
 }
 
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String // format scrypt : "sel_hex:hash_hex"
+  role         String   @default("restricted") // admin | restricted
+  createdAt    DateTime @default(now())
+}
+
 model CompanyDocument {
   id          String    @id @default(cuid())
   type        String // identifiant de pièce, aligné sur les ids de checklist (kbis, decennale, rcpro, ...)

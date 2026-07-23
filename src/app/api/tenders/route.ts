@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/server/db";
 import { serializeTender } from "@/server/serialize";
+import { sessionFromHeaders } from "@/lib/auth";
 import type { Prisma } from "@prisma/client";
 
 /** GET /api/tenders — liste filtrable des appels d'offres pour le dashboard. */
 export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams;
   const where: Prisma.TenderWhereInput = {};
+  const session = sessionFromHeaders(request.headers);
 
   const q = sp.get("q");
   if (q) {
@@ -36,6 +38,10 @@ export async function GET(request: NextRequest) {
 
   const country = sp.get("country");
   if (country) where.country = country;
+
+  // Compte restreint : les annonces suisses ne doivent jamais être visibles, quels
+  // que soient les filtres demandés côté client.
+  if (session?.role === "restricted") where.country = "FR";
 
   const minScore = sp.get("minScore");
   if (minScore) where.score = { gte: Number(minScore) };
@@ -68,7 +74,15 @@ export async function GET(request: NextRequest) {
         ? [{ deadlineAt: sortDir }]
         : sortBy === "source"
           ? [{ source: { name: sortDir } }]
-          : [{ score: "desc" }, { publishedAt: "desc" }];
+          : sortBy === "relevanceLevel"
+            ? // Le niveau de pertinence dérive directement du score — trier sur le score
+              // donne un classement cohérent (pas d'ordre alphabétique arbitraire sur l'enum).
+              [{ score: sortDir }]
+            : sortBy === "workCategory"
+              ? [{ workCategory: sortDir }]
+              : sortBy === "location"
+                ? [{ country: sortDir }, { departementsJson: sortDir }]
+                : [{ score: "desc" }, { publishedAt: "desc" }];
 
   const [total, tenders] = await Promise.all([
     prisma.tender.count({ where }),

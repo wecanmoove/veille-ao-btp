@@ -1,11 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/server/db";
 import { getCompanyProfile, isProfileUsable } from "@/server/company-profile";
 import { buildReponsePack } from "@/server/reponse/generate";
 import { listCompanyDocuments, isDocumentValid } from "@/server/company-documents";
+import { isAdmin } from "@/lib/auth";
 
 /** GET /api/tenders/[id]/reponse — génère le dossier de réponse (lettre, mémoire, checklist). */
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!isAdmin(req.headers)) {
+    return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
+  }
   const { id } = await params;
   const tender = await prisma.tender.findUnique({ where: { id } });
   if (!tender) {

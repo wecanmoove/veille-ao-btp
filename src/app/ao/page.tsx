@@ -33,6 +33,18 @@ interface ZoneOption {
   enabled: boolean;
 }
 
+type SortColumn = "score" | "publishedAt" | "source" | "deadlineAt" | "relevanceLevel" | "workCategory" | "location";
+
+const SORT_LABELS: Record<SortColumn, string> = {
+  score: "score de pertinence",
+  publishedAt: "date de publication",
+  deadlineAt: "date limite",
+  source: "source",
+  relevanceLevel: "pertinence",
+  workCategory: "catégorie",
+  location: "lieu",
+};
+
 const RELEVANCE_OPTIONS = [
   { value: "", label: "Tous niveaux" },
   { value: "tres_pertinent", label: "Très pertinent" },
@@ -53,7 +65,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 /** Filtres rapides métier — priorité Aix-Marseille puis Région Sud, Alpes, Suisse. */
-const QUICK_FILTERS: { label: string; kind: "q" | "dept"; value: string; hot?: boolean }[] = [
+const QUICK_FILTERS: { label: string; kind: "q" | "dept"; value: string; hot?: boolean; ch?: boolean }[] = [
   { label: "Marseille", kind: "q", value: "Marseille", hot: true },
   { label: "Aix-en-Provence", kind: "q", value: "Aix", hot: true },
   { label: "13", kind: "dept", value: "13", hot: true },
@@ -62,9 +74,9 @@ const QUICK_FILTERS: { label: string; kind: "q" | "dept"; value: string; hot?: b
   { label: "05", kind: "dept", value: "05" },
   { label: "Annecy", kind: "q", value: "Annecy" },
   { label: "74", kind: "dept", value: "74" },
-  { label: "Genève", kind: "dept", value: "GE" },
-  { label: "Vaud", kind: "dept", value: "VD" },
-  { label: "Valais", kind: "dept", value: "VS" },
+  { label: "Genève", kind: "dept", value: "GE", ch: true },
+  { label: "Vaud", kind: "dept", value: "VD", ch: true },
+  { label: "Valais", kind: "dept", value: "VS", ch: true },
 ];
 
 function csvEscape(v: string): string {
@@ -113,9 +125,7 @@ function AnnoncesContent() {
   const [minScore, setMinScore] = useState(searchParams.get("minScore") ?? "");
   const [departement, setDepartement] = useState(searchParams.get("departement") ?? "");
   const [zone, setZone] = useState(searchParams.get("zone") ?? "");
-  const [sortBy, setSortBy] = useState<"score" | "publishedAt" | "source" | "deadlineAt">(
-    (searchParams.get("sortBy") as "score" | "publishedAt" | "source" | "deadlineAt") ?? "score",
-  );
+  const [sortBy, setSortBy] = useState<SortColumn>((searchParams.get("sortBy") as SortColumn) ?? "score");
   const [sortDir, setSortDir] = useState<"asc" | "desc">(searchParams.get("sortDir") === "asc" ? "asc" : "desc");
   // Filtres de "drill-down" en provenance des tuiles KPI de l'accueil — pas de contrôle
   // dédié dans l'UI, juste appliqués tels quels tant qu'ils sont présents dans l'URL initiale.
@@ -124,6 +134,14 @@ function AnnoncesContent() {
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [punchKey, setPunchKey] = useState(0);
+  const [role, setRole] = useState<"admin" | "restricted" | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((me) => setRole(me.role ?? null))
+      .catch(() => setRole(null));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -147,7 +165,7 @@ function AnnoncesContent() {
     setLoading(false);
   }, [q, source, relevanceLevel, workCategory, minScore, departement, zone, sortBy, sortDir, createdAfterDays, deadlineWithinDays]);
 
-  function toggleSort(column: "score" | "publishedAt" | "source" | "deadlineAt") {
+  function toggleSort(column: SortColumn) {
     if (sortBy === column) {
       setSortDir((d) => (d === "desc" ? "asc" : "desc"));
     } else {
@@ -156,7 +174,7 @@ function AnnoncesContent() {
     }
   }
 
-  function sortIndicator(column: "score" | "publishedAt" | "source" | "deadlineAt") {
+  function sortIndicator(column: SortColumn) {
     if (sortBy !== column) return null;
     return <span className="ml-1 inline-block">{sortDir === "desc" ? "▼" : "▲"}</span>;
   }
@@ -207,7 +225,7 @@ function AnnoncesContent() {
           <h1 className="text-2xl font-extrabold tracking-tight">Annonces</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {total} appel{total > 1 ? "s" : ""} d&apos;offres · triés par{" "}
-            {sortBy === "score" ? "score de pertinence" : sortBy === "publishedAt" ? "date de publication" : sortBy === "deadlineAt" ? "date limite" : "source"}
+            {SORT_LABELS[sortBy]}
             {" "}({sortDir === "desc" ? "plus récent" : "plus ancien"})
           </p>
         </div>
@@ -215,16 +233,18 @@ function AnnoncesContent() {
           {syncMessage && (
             <span className="max-w-xs text-xs font-medium text-slate-500 dark:text-slate-400">{syncMessage}</span>
           )}
-          <button
-            onClick={triggerSyncAll}
-            disabled={syncing}
-            title="Synchroniser toutes les sources actives"
-            className={`flex h-11 w-11 items-center justify-center rounded-full border-2 border-orange-500 bg-orange-500 text-white shadow-md transition hover:bg-orange-400 disabled:opacity-60 ${syncing ? "animate-pulse" : ""}`}
-          >
-            <span key={punchKey} className="animate-punch inline-block text-lg">
-              🥊
-            </span>
-          </button>
+          {role !== "restricted" && (
+            <button
+              onClick={triggerSyncAll}
+              disabled={syncing}
+              title="Synchroniser toutes les sources actives"
+              className={`flex h-11 w-11 items-center justify-center rounded-full border-2 border-orange-500 bg-orange-500 text-white shadow-md transition hover:bg-orange-400 disabled:opacity-60 ${syncing ? "animate-pulse" : ""}`}
+            >
+              <span key={punchKey} className="animate-punch inline-block text-lg">
+                🥊
+              </span>
+            </button>
+          )}
           <button
             onClick={() => exportCsv(items)}
             disabled={items.length === 0}
@@ -238,7 +258,7 @@ function AnnoncesContent() {
       {/* Filtres rapides ville / département / canton */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-bold uppercase tracking-wide text-slate-400">Accès rapide</span>
-        {QUICK_FILTERS.map((f) => (
+        {QUICK_FILTERS.filter((f) => !(f.ch && role === "restricted")).map((f) => (
           <button
             key={`${f.kind}-${f.value}`}
             onClick={() => toggleQuick(f)}
@@ -267,7 +287,7 @@ function AnnoncesContent() {
         >
           🌍 Toutes zones
         </button>
-        {zonesOptions.map((z) => (
+        {zonesOptions.filter((z) => !(z.id === "suisse-romande" && role === "restricted")).map((z) => (
           <button
             key={z.id}
             onClick={() => setZone(zone === z.id ? "" : z.id)}
@@ -343,9 +363,21 @@ function AnnoncesContent() {
                   Score{sortIndicator("score")}
                 </button>
               </th>
-              <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 md:table-cell dark:text-slate-400">Pertinence</th>
-              <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 lg:table-cell dark:text-slate-400">Catégorie</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">Lieu</th>
+              <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 md:table-cell dark:text-slate-400">
+                <button onClick={() => toggleSort("relevanceLevel")} className="flex items-center hover:text-teal-700 dark:hover:text-teal-400">
+                  Pertinence{sortIndicator("relevanceLevel")}
+                </button>
+              </th>
+              <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 lg:table-cell dark:text-slate-400">
+                <button onClick={() => toggleSort("workCategory")} className="flex items-center hover:text-teal-700 dark:hover:text-teal-400">
+                  Catégorie{sortIndicator("workCategory")}
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">
+                <button onClick={() => toggleSort("location")} className="flex items-center hover:text-teal-700 dark:hover:text-teal-400">
+                  Lieu{sortIndicator("location")}
+                </button>
+              </th>
               <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 sm:table-cell dark:text-slate-400">
                 <button onClick={() => toggleSort("deadlineAt")} className="flex items-center hover:text-teal-700 dark:hover:text-teal-400">
                   Limite{sortIndicator("deadlineAt")}

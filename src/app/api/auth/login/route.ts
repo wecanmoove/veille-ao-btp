@@ -1,27 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE, expectedSessionValue, publicOrigin } from "@/lib/tunnel-auth";
+import { prisma } from "@/server/db";
+import { SESSION_COOKIE, signSession, verifyPassword, publicOrigin } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
-  const password = process.env.TUNNEL_PASSWORD;
   const secret = process.env.SESSION_SECRET ?? "";
-  if (!password) {
-    return NextResponse.json({ error: "Gate non configurée" }, { status: 500 });
-  }
 
   const form = await req.formData();
-  const entered = String(form.get("password") ?? "");
+  const username = String(form.get("username") ?? "").trim();
+  const password = String(form.get("password") ?? "");
   const next = String(form.get("next") ?? "/");
   const safeNext = next.startsWith("/") ? next : "/";
   const origin = publicOrigin(req);
 
-  if (entered !== password) {
+  const user = username ? await prisma.user.findUnique({ where: { username } }) : null;
+  const valid = user ? await verifyPassword(password, user.passwordHash) : false;
+
+  if (!user || !valid) {
     const url = new URL("/auth", origin);
     url.searchParams.set("error", "1");
     url.searchParams.set("next", safeNext);
     return NextResponse.redirect(url, { status: 303 });
   }
 
-  const value = await expectedSessionValue(password, secret);
+  const value = await signSession({ uid: user.id, username: user.username, role: user.role as "admin" | "restricted" }, secret);
   const res = NextResponse.redirect(new URL(safeNext, origin), { status: 303 });
   res.cookies.set(SESSION_COOKIE, value, {
     httpOnly: true,

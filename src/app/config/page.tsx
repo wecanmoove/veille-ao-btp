@@ -70,6 +70,7 @@ export default function ConfigPage() {
   const [alertConfig, setAlertConfig] = useState<AlertConfig | null>(null);
   const [syncMessage, setSyncMessage] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [role, setRole] = useState<"admin" | "restricted" | null>(null);
 
   const loadSources = useCallback(async () => {
     const res = await fetch("/api/sources");
@@ -78,11 +79,18 @@ export default function ConfigPage() {
 
   useEffect(() => {
     void (async () => {
-      await loadSources();
-      const res = await fetch("/api/settings/alerts");
-      setAlertConfig(await res.json());
+      await Promise.all([
+        loadSources(),
+        fetch("/api/settings/alerts")
+          .then((r) => r.json())
+          .then(setAlertConfig),
+        fetch("/api/auth/me")
+          .then((r) => r.json())
+          .then((me) => setRole(me.role ?? null))
+          .catch(() => setRole(null)),
+      ]);
     })();
-  }, []);
+  }, [loadSources]);
 
   async function updateSource(slug: string, patch: Partial<Pick<SourceRow, "enabled" | "cronExpression" | "timezone">>) {
     await fetch(`/api/sources/${slug}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) });
@@ -164,13 +172,15 @@ export default function ConfigPage() {
                     {s.lastSuccessAt ? new Date(s.lastSuccessAt).toLocaleString("fr-FR") : "Jamais"}
                   </td>
                   <td className="px-3 py-2">
-                    <button
-                      onClick={() => triggerSync(s.slug)}
-                      disabled={s.locked}
-                      className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-                    >
-                      {s.locked ? "En cours..." : "Synchroniser"}
-                    </button>
+                    {role !== "restricted" && (
+                      <button
+                        onClick={() => triggerSync(s.slug)}
+                        disabled={s.locked}
+                        className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {s.locked ? "En cours..." : "Synchroniser"}
+                      </button>
+                    )}
                     {syncMessage[s.slug] && <div className="mt-1 text-xs text-slate-500">{syncMessage[s.slug]}</div>}
                   </td>
                 </tr>

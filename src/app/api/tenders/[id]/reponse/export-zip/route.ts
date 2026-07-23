@@ -4,9 +4,13 @@ import { prisma } from "@/server/db";
 import { buildChecklist } from "@/server/reponse/generate";
 import { textToDocxBuffer, textToPdfBuffer } from "@/server/reponse/export";
 import { listCompanyDocuments, isDocumentValid, readCompanyDocumentBytes } from "@/server/company-documents";
+import { isAdmin } from "@/lib/auth";
 
 /** POST /api/tenders/[id]/reponse/export-zip — dossier complet : lettre + mémoire (docx/pdf) + checklist + pièces jointes. */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!isAdmin(req.headers)) {
+    return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
+  }
   const { id } = await params;
   const tender = await prisma.tender.findUnique({ where: { id } });
   if (!tender) {
