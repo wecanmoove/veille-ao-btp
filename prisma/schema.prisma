@@ -1,6 +1,6 @@
 // Veille AO BTP — schéma de données
 // Provider SQLite par défaut pour un démarrage local sans dépendance.
-// Migration PostgreSQL : changer provider = "postgresql" et DATABASE_URL, puis `npx prisma db push`.
+// Migration PostgreSQL : changer provider = "sqlite" et DATABASE_URL, puis `npx prisma db push`.
 // Les champs *Json contiennent du JSON sérialisé (SQLite ne supporte ni enums ni tableaux natifs).
 
 generator client {

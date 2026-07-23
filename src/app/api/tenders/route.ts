@@ -47,12 +47,23 @@ export async function GET(request: NextRequest) {
   const page = Math.max(1, Number(sp.get("page") ?? "1"));
   const pageSize = Math.min(100, Math.max(1, Number(sp.get("pageSize") ?? "25")));
 
+  const sortDir: "asc" | "desc" = sp.get("sortDir") === "asc" ? "asc" : "desc";
+  const sortBy = sp.get("sortBy");
+  const orderBy: Prisma.TenderOrderByWithRelationInput[] =
+    sortBy === "publishedAt"
+      ? [{ publishedAt: sortDir }]
+      : sortBy === "deadlineAt"
+        ? [{ deadlineAt: sortDir }]
+        : sortBy === "source"
+          ? [{ source: { name: sortDir } }]
+          : [{ score: "desc" }, { publishedAt: "desc" }];
+
   const [total, tenders] = await Promise.all([
     prisma.tender.count({ where }),
     prisma.tender.findMany({
       where,
       include: { source: true },
-      orderBy: [{ score: "desc" }, { publishedAt: "desc" }],
+      orderBy,
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),

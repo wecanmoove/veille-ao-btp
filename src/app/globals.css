@@ -11,3 +11,19 @@
     color-scheme: dark;
   }
 }
+
+@keyframes punch {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  35% {
+    transform: translateX(10px) scale(0.9);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+.animate-punch {
+  animation: punch 0.35s ease-out;
+}

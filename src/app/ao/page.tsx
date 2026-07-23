@@ -113,6 +113,11 @@ function AnnoncesContent() {
   const [minScore, setMinScore] = useState("");
   const [departement, setDepartement] = useState(searchParams.get("departement") ?? "");
   const [zone, setZone] = useState(searchParams.get("zone") ?? "");
+  const [sortBy, setSortBy] = useState<"score" | "publishedAt" | "source" | "deadlineAt">("score");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [punchKey, setPunchKey] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -124,13 +129,50 @@ function AnnoncesContent() {
     if (minScore) params.set("minScore", minScore);
     if (departement) params.set("departement", departement);
     if (zone) params.set("zone", zone);
+    params.set("sortBy", sortBy);
+    params.set("sortDir", sortDir);
     params.set("pageSize", "100");
     const res = await fetch(`/api/tenders?${params}`);
     const data = await res.json();
     setItems(data.items);
     setTotal(data.total);
     setLoading(false);
-  }, [q, source, relevanceLevel, workCategory, minScore, departement, zone]);
+  }, [q, source, relevanceLevel, workCategory, minScore, departement, zone, sortBy, sortDir]);
+
+  function toggleSort(column: "score" | "publishedAt" | "source" | "deadlineAt") {
+    if (sortBy === column) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
+      setSortBy(column);
+      setSortDir("desc");
+    }
+  }
+
+  function sortIndicator(column: "score" | "publishedAt" | "source" | "deadlineAt") {
+    if (sortBy !== column) return null;
+    return <span className="ml-1 inline-block">{sortDir === "desc" ? "▼" : "▲"}</span>;
+  }
+
+  async function triggerSyncAll() {
+    setPunchKey((k) => k + 1);
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      const res = await fetch("/api/sync", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        setSyncMessage(`✓ ${data.inserted} nouvelle${data.inserted > 1 ? "s" : ""} annonce${data.inserted > 1 ? "s" : ""} (${data.fetched} récupérées, ${data.duplicates} doublons)`);
+        await load();
+      } else {
+        setSyncMessage(`Erreur : ${data.error}`);
+      }
+    } catch {
+      setSyncMessage("Erreur réseau pendant la synchronisation.");
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMessage(null), 6000);
+    }
+  }
 
   useEffect(() => {
     fetch("/api/sources").then((r) => r.json()).then(setSources);
@@ -156,16 +198,33 @@ function AnnoncesContent() {
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">Annonces</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            {total} appel{total > 1 ? "s" : ""} d&apos;offres · triés par score de pertinence
+            {total} appel{total > 1 ? "s" : ""} d&apos;offres · triés par{" "}
+            {sortBy === "score" ? "score de pertinence" : sortBy === "publishedAt" ? "date de publication" : sortBy === "deadlineAt" ? "date limite" : "source"}
+            {" "}({sortDir === "desc" ? "plus récent" : "plus ancien"})
           </p>
         </div>
-        <button
-          onClick={() => exportCsv(items)}
-          disabled={items.length === 0}
-          className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-        >
-          ⬇️ Exporter CSV ({items.length})
-        </button>
+        <div className="flex items-center gap-3">
+          {syncMessage && (
+            <span className="max-w-xs text-xs font-medium text-slate-500 dark:text-slate-400">{syncMessage}</span>
+          )}
+          <button
+            onClick={triggerSyncAll}
+            disabled={syncing}
+            title="Synchroniser toutes les sources actives"
+            className={`flex h-11 w-11 items-center justify-center rounded-full border-2 border-orange-500 bg-orange-500 text-white shadow-md transition hover:bg-orange-400 disabled:opacity-60 ${syncing ? "animate-pulse" : ""}`}
+          >
+            <span key={punchKey} className="animate-punch inline-block text-lg">
+              🥊
+            </span>
+          </button>
+          <button
+            onClick={() => exportCsv(items)}
+            disabled={items.length === 0}
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            ⬇️ Exporter CSV ({items.length})
+          </button>
+        </div>
       </div>
 
       {/* Filtres rapides ville / département / canton */}
@@ -261,13 +320,29 @@ function AnnoncesContent() {
         <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
           <thead className="bg-slate-50 dark:bg-slate-950/60">
             <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">Annonce</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">Source</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">Score</th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">
+                <button onClick={() => toggleSort("publishedAt")} className="flex items-center hover:text-teal-700 dark:hover:text-teal-400">
+                  Annonce{sortIndicator("publishedAt")}
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">
+                <button onClick={() => toggleSort("source")} className="flex items-center hover:text-teal-700 dark:hover:text-teal-400">
+                  Source{sortIndicator("source")}
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">
+                <button onClick={() => toggleSort("score")} className="flex items-center hover:text-teal-700 dark:hover:text-teal-400">
+                  Score{sortIndicator("score")}
+                </button>
+              </th>
               <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 md:table-cell dark:text-slate-400">Pertinence</th>
               <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 lg:table-cell dark:text-slate-400">Catégorie</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">Lieu</th>
-              <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 sm:table-cell dark:text-slate-400">Limite</th>
+              <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 sm:table-cell dark:text-slate-400">
+                <button onClick={() => toggleSort("deadlineAt")} className="flex items-center hover:text-teal-700 dark:hover:text-teal-400">
+                  Limite{sortIndicator("deadlineAt")}
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
