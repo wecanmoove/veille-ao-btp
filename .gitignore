@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# documents entreprise uploadés (pièces administratives — jamais commités)
+/uploads/
+
 # production
 /build
 

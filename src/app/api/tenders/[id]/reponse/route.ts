@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/server/db";
 import { getCompanyProfile, isProfileUsable } from "@/server/company-profile";
 import { buildReponsePack } from "@/server/reponse/generate";
+import { listCompanyDocuments, isDocumentValid } from "@/server/company-documents";
 
 /** GET /api/tenders/[id]/reponse — génère le dossier de réponse (lettre, mémoire, checklist). */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -12,9 +13,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   }
   const profile = await getCompanyProfile();
   const pack = buildReponsePack(tender, profile);
+  const documents = await listCompanyDocuments();
+
   return NextResponse.json({
     ...pack,
     profileComplete: isProfileUsable(profile),
+    documents: documents.map((d) => ({
+      id: d.id,
+      type: d.type,
+      fileName: d.fileName,
+      expiresAt: d.expiresAt,
+      valid: isDocumentValid(d),
+    })),
     tender: {
       id: tender.id,
       title: tender.title,

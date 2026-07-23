@@ -10,11 +10,20 @@ interface ChecklistItem {
   required: boolean;
 }
 
+interface DocumentRef {
+  id: string;
+  type: string;
+  fileName: string;
+  expiresAt: string | null;
+  valid: boolean;
+}
+
 interface Pack {
   lettre: string;
   memoire: string;
   checklist: ChecklistItem[];
   profileComplete: boolean;
+  documents: DocumentRef[];
   tender: {
     id: string;
     title: string;
@@ -25,14 +34,23 @@ interface Pack {
   };
 }
 
-function download(filename: string, content: string) {
-  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+function downloadBlob(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+async function exportDoc(title: string, content: string, filename: string, format: "docx" | "pdf") {
+  const res = await fetch("/api/reponse/export", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, content, filename, format }),
+  });
+  if (!res.ok) throw new Error("Échec de l'export");
+  downloadBlob(`${filename}.${format}`, await res.blob());
 }
 
 export default function ReponsePage({ params }: { params: Promise<{ id: string }> }) {
@@ -42,6 +60,9 @@ export default function ReponsePage({ params }: { params: Promise<{ id: string }
   const [memoire, setMemoire] = useState("");
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState<string | null>(null);
+  const [exportingLettre, setExportingLettre] = useState<"docx" | "pdf" | null>(null);
+  const [exportingMemoire, setExportingMemoire] = useState<"docx" | "pdf" | null>(null);
+  const [exportingZip, setExportingZip] = useState(false);
 
   useEffect(() => {
     fetch(`/api/tenders/${id}/reponse`)
@@ -50,13 +71,20 @@ export default function ReponsePage({ params }: { params: Promise<{ id: string }
         setPack(p);
         setLettre(p.lettre);
         setMemoire(p.memoire);
+
+        // Coche automatiquement les pièces pour lesquelles un document valide est déjà en bibliothèque,
+        // sans écraser un choix explicite déjà fait par l'utilisateur (stocké en localStorage).
+        const autoChecked: Record<string, boolean> = {};
+        for (const doc of p.documents) if (doc.valid) autoChecked[doc.type] = true;
+        let stored: Record<string, boolean> = {};
+        try {
+          stored = JSON.parse(localStorage.getItem(`reponse-checklist-${id}`) ?? "{}");
+        } catch {
+          stored = {};
+        }
+        setDone({ ...autoChecked, ...stored });
       })
       .catch(() => setPack(null));
-    try {
-      setDone(JSON.parse(localStorage.getItem(`reponse-checklist-${id}`) ?? "{}"));
-    } catch {
-      setDone({});
-    }
   }, [id]);
 
   function toggle(itemId: string) {
@@ -137,36 +165,56 @@ export default function ReponsePage({ params }: { params: Promise<{ id: string }
           </span>
         </div>
         <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-          {pack.checklist.map((item) => (
-            <li key={item.id}>
-              <button
-                onClick={() => toggle(item.id)}
-                className="flex w-full items-start gap-3 px-5 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/60"
-              >
-                <span
-                  className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs font-bold ${
-                    done[item.id]
-                      ? "border-emerald-600 bg-emerald-600 text-white"
-                      : "border-slate-300 dark:border-slate-600"
-                  }`}
-                >
-                  {done[item.id] ? "✓" : ""}
-                </span>
-                <span className="min-w-0">
-                  <span
-                    className={`block text-sm font-medium ${
-                      done[item.id] ? "text-slate-400 line-through" : "text-slate-800 dark:text-slate-200"
-                    }`}
-                  >
-                    {item.label}
-                    {item.required && <span className="ml-1 text-red-500">*</span>}
-                  </span>
-                  <span className="block text-xs text-slate-500 dark:text-slate-400">{item.hint}</span>
-                </span>
-              </button>
-            </li>
-          ))}
+          {pack.checklist.map((item) => {
+            const attached = pack.documents.find((d) => d.type === item.id);
+            return (
+              <li key={item.id}>
+                <div className="flex w-full items-start gap-3 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                  <button onClick={() => toggle(item.id)} className="flex flex-1 items-start gap-3 text-left">
+                    <span
+                      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs font-bold ${
+                        done[item.id]
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-slate-300 dark:border-slate-600"
+                      }`}
+                    >
+                      {done[item.id] ? "✓" : ""}
+                    </span>
+                    <span className="min-w-0">
+                      <span
+                        className={`block text-sm font-medium ${
+                          done[item.id] ? "text-slate-400 line-through" : "text-slate-800 dark:text-slate-200"
+                        }`}
+                      >
+                        {item.label}
+                        {item.required && <span className="ml-1 text-red-500">*</span>}
+                      </span>
+                      <span className="block text-xs text-slate-500 dark:text-slate-400">{item.hint}</span>
+                    </span>
+                  </button>
+                  {attached && (
+                    <a
+                      href={`/api/settings/documents/${attached.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        attached.valid
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300"
+                          : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
+                      }`}
+                    >
+                      📎 {attached.valid ? "pièce jointe" : "expirée"}
+                    </a>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
+        <div className="border-t border-slate-200 px-5 py-3 dark:border-slate-800">
+          <Link href="/entreprise" className="text-xs font-semibold text-teal-700 hover:underline dark:text-teal-400">
+            📎 Gérer mes documents (Kbis, décennale, RC pro...) →
+          </Link>
+        </div>
       </section>
 
       {/* Lettre de candidature */}
@@ -175,7 +223,15 @@ export default function ReponsePage({ params }: { params: Promise<{ id: string }
         value={lettre}
         onChange={setLettre}
         onCopy={() => copy("lettre", lettre)}
-        onDownload={() => download(`lettre-candidature-${pack.tender.sourceRef}.txt`, lettre)}
+        exporting={exportingLettre}
+        onExport={async (format) => {
+          setExportingLettre(format);
+          try {
+            await exportDoc("Lettre de candidature", lettre, `lettre-candidature-${pack.tender.sourceRef}`, format);
+          } finally {
+            setExportingLettre(null);
+          }
+        }}
         copied={copied === "lettre"}
         rows={18}
       />
@@ -186,10 +242,47 @@ export default function ReponsePage({ params }: { params: Promise<{ id: string }
         value={memoire}
         onChange={setMemoire}
         onCopy={() => copy("memoire", memoire)}
-        onDownload={() => download(`memoire-technique-${pack.tender.sourceRef}.txt`, memoire)}
+        exporting={exportingMemoire}
+        onExport={async (format) => {
+          setExportingMemoire(format);
+          try {
+            await exportDoc("Mémoire technique", memoire, `memoire-technique-${pack.tender.sourceRef}`, format);
+          } finally {
+            setExportingMemoire(null);
+          }
+        }}
         copied={copied === "memoire"}
         rows={28}
       />
+
+      {/* Dossier complet */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50 p-5 dark:border-teal-900 dark:bg-teal-950/30">
+        <div>
+          <p className="font-bold text-slate-900 dark:text-white">📦 Dossier complet</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            Lettre + mémoire (.docx et .pdf) + checklist + pièces jointes valides, dans une seule archive .zip.
+          </p>
+        </div>
+        <button
+          onClick={async () => {
+            setExportingZip(true);
+            try {
+              const res = await fetch(`/api/tenders/${id}/reponse/export-zip`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ lettre, memoire }),
+              });
+              if (res.ok) downloadBlob(`dossier-${pack.tender.sourceRef}.zip`, await res.blob());
+            } finally {
+              setExportingZip(false);
+            }
+          }}
+          disabled={exportingZip}
+          className="rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-orange-400 disabled:opacity-50"
+        >
+          {exportingZip ? "Génération…" : "⬇️ Télécharger le dossier (.zip)"}
+        </button>
+      </div>
 
       <p className="text-xs text-slate-400">
         Documents générés automatiquement à partir de l&apos;annonce et de votre profil entreprise — relisez et
@@ -204,7 +297,8 @@ function DocumentEditor({
   value,
   onChange,
   onCopy,
-  onDownload,
+  onExport,
+  exporting,
   copied,
   rows,
 }: {
@@ -212,7 +306,8 @@ function DocumentEditor({
   value: string;
   onChange: (v: string) => void;
   onCopy: () => void;
-  onDownload: () => void;
+  onExport: (format: "docx" | "pdf") => void;
+  exporting: "docx" | "pdf" | null;
   copied: boolean;
   rows: number;
 }) {
@@ -228,10 +323,18 @@ function DocumentEditor({
             {copied ? "✓ Copié" : "Copier"}
           </button>
           <button
-            onClick={onDownload}
-            className="rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-600"
+            onClick={() => onExport("docx")}
+            disabled={exporting !== null}
+            className="rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-600 disabled:opacity-50"
           >
-            Télécharger .txt
+            {exporting === "docx" ? "…" : "Télécharger .docx"}
+          </button>
+          <button
+            onClick={() => onExport("pdf")}
+            disabled={exporting !== null}
+            className="rounded-lg bg-slate-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-600 disabled:opacity-50"
+          >
+            {exporting === "pdf" ? "…" : "Télécharger .pdf"}
           </button>
         </div>
       </div>

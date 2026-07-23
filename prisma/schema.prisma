@@ -51,13 +51,13 @@ model Tender {
   sourceUrl        String?
 
   // Résultat du filtrage métier BTP
-  score            Int    @default(0) // 0-100
-  relevanceLevel   String @default("a_verifier") // tres_pertinent | pertinent | a_verifier | non_pertinent
-  workCategory     String @default("hors_cible") // rehabilitation | renovation | gros_oeuvre | second_oeuvre | tce | maintenance_entretien | hors_cible
-  keywordsJson     String @default("[]") // mots_cles_detectes
-  justification    String?
-  exclusionReason  String?
-  scoredBy         String @default("rules") // ai | rules
+  score           Int     @default(0) // 0-100
+  relevanceLevel  String  @default("a_verifier") // tres_pertinent | pertinent | a_verifier | non_pertinent
+  workCategory    String  @default("hors_cible") // rehabilitation | renovation | gros_oeuvre | second_oeuvre | tce | maintenance_entretien | hors_cible
+  keywordsJson    String  @default("[]") // mots_cles_detectes
+  justification   String?
+  exclusionReason String?
+  scoredBy        String  @default("rules") // ai | rules
 
   status    String   @default("new") // new | seen | archived
   createdAt DateTime @default(now())
@@ -121,4 +121,18 @@ model ErrorLog {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+}
+
+model CompanyDocument {
+  id          String    @id @default(cuid())
+  type        String // identifiant de pièce, aligné sur les ids de checklist (kbis, decennale, rcpro, ...)
+  label       String // nom affiché (ex : nom du fichier d'origine sans l'horodatage)
+  fileName    String // nom de fichier original
+  mimeType    String
+  storagePath String // chemin relatif sous le dossier uploads/
+  sizeBytes   Int
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([type])
 }
