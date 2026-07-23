@@ -2,7 +2,7 @@ FROM node:24-alpine AS builder
 WORKDIR /app
 
 # Copier d'abord les fichiers de config et sources AVANT npm install
-COPY package*.json tsconfig.json next.config.ts ./
+COPY package*.json tsconfig.json next.config.ts postcss.config.ts tailwind.config.ts ./
 COPY src ./src
 COPY public ./public
 COPY prisma ./prisma
