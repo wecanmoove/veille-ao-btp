@@ -108,13 +108,19 @@ function AnnoncesContent() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState(searchParams.get("q") ?? "");
   const [source, setSource] = useState("");
-  const [relevanceLevel, setRelevanceLevel] = useState("");
+  const [relevanceLevel, setRelevanceLevel] = useState(searchParams.get("relevanceLevel") ?? "");
   const [workCategory, setWorkCategory] = useState(searchParams.get("workCategory") ?? "");
-  const [minScore, setMinScore] = useState("");
+  const [minScore, setMinScore] = useState(searchParams.get("minScore") ?? "");
   const [departement, setDepartement] = useState(searchParams.get("departement") ?? "");
   const [zone, setZone] = useState(searchParams.get("zone") ?? "");
-  const [sortBy, setSortBy] = useState<"score" | "publishedAt" | "source" | "deadlineAt">("score");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [sortBy, setSortBy] = useState<"score" | "publishedAt" | "source" | "deadlineAt">(
+    (searchParams.get("sortBy") as "score" | "publishedAt" | "source" | "deadlineAt") ?? "score",
+  );
+  const [sortDir, setSortDir] = useState<"asc" | "desc">(searchParams.get("sortDir") === "asc" ? "asc" : "desc");
+  // Filtres de "drill-down" en provenance des tuiles KPI de l'accueil — pas de contrôle
+  // dédié dans l'UI, juste appliqués tels quels tant qu'ils sont présents dans l'URL initiale.
+  const [createdAfterDays] = useState(searchParams.get("createdAfterDays") ?? "");
+  const [deadlineWithinDays] = useState(searchParams.get("deadlineWithinDays") ?? "");
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [punchKey, setPunchKey] = useState(0);
@@ -129,6 +135,8 @@ function AnnoncesContent() {
     if (minScore) params.set("minScore", minScore);
     if (departement) params.set("departement", departement);
     if (zone) params.set("zone", zone);
+    if (createdAfterDays) params.set("createdAfterDays", createdAfterDays);
+    if (deadlineWithinDays) params.set("deadlineWithinDays", deadlineWithinDays);
     params.set("sortBy", sortBy);
     params.set("sortDir", sortDir);
     params.set("pageSize", "100");
@@ -137,7 +145,7 @@ function AnnoncesContent() {
     setItems(data.items);
     setTotal(data.total);
     setLoading(false);
-  }, [q, source, relevanceLevel, workCategory, minScore, departement, zone, sortBy, sortDir]);
+  }, [q, source, relevanceLevel, workCategory, minScore, departement, zone, sortBy, sortDir, createdAfterDays, deadlineWithinDays]);
 
   function toggleSort(column: "score" | "publishedAt" | "source" | "deadlineAt") {
     if (sortBy === column) {

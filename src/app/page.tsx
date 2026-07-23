@@ -108,11 +108,37 @@ export default function HomePage() {
 
       {/* KPI */}
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <Kpi label="Annonces suivies" value={stats?.relevant ?? "…"} icon="📋" />
-        <Kpi label="Nouvelles (7 jours)" value={stats?.new7d ?? "…"} icon="✨" accent />
-        <Kpi label="Expirent sous 14 j" value={stats?.expiring14d ?? "…"} icon="⏰" />
-        <Kpi label="Très pertinentes" value={stats?.tresPertinent ?? "…"} icon="🎯" />
-        <Kpi label="Montants cumulés" value={stats ? formatEuros(stats.budgetSum) : "…"} icon="💶" />
+        <Kpi
+          label="Annonces suivies"
+          value={stats?.relevant ?? "…"}
+          icon="📋"
+          href="/ao?relevanceLevel=tres_pertinent,pertinent,a_verifier"
+        />
+        <Kpi
+          label="Nouvelles (7 jours)"
+          value={stats?.new7d ?? "…"}
+          icon="✨"
+          accent
+          href="/ao?createdAfterDays=7&sortBy=publishedAt&sortDir=desc"
+        />
+        <Kpi
+          label="Expirent sous 14 j"
+          value={stats?.expiring14d ?? "…"}
+          icon="⏰"
+          href="/ao?deadlineWithinDays=14&sortBy=deadlineAt&sortDir=asc"
+        />
+        <Kpi
+          label="Très pertinentes"
+          value={stats?.tresPertinent ?? "…"}
+          icon="🎯"
+          href="/ao?relevanceLevel=tres_pertinent"
+        />
+        <Kpi
+          label="Montants cumulés"
+          value={stats ? formatEuros(stats.budgetSum) : "…"}
+          icon="💶"
+          href="/ao?minScore=45&sortBy=score&sortDir=desc"
+        />
       </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -233,13 +259,26 @@ export default function HomePage() {
   );
 }
 
-function Kpi({ label, value, icon, accent }: { label: string; value: string | number; icon: string; accent?: boolean }) {
+function Kpi({
+  label,
+  value,
+  icon,
+  accent,
+  href,
+}: {
+  label: string;
+  value: string | number;
+  icon: string;
+  accent?: boolean;
+  href: string;
+}) {
   return (
-    <div
-      className={`rounded-xl border p-4 ${
+    <Link
+      href={href}
+      className={`block rounded-xl border p-4 transition hover:shadow-md hover:-translate-y-0.5 ${
         accent
-          ? "border-teal-200 bg-teal-50 dark:border-teal-900 dark:bg-teal-950/40"
-          : "border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+          ? "border-teal-200 bg-teal-50 hover:border-teal-400 dark:border-teal-900 dark:bg-teal-950/40"
+          : "border-slate-200 bg-white hover:border-teal-400 dark:border-slate-800 dark:bg-slate-900"
       }`}
     >
       <div className="flex items-center justify-between">
@@ -247,6 +286,6 @@ function Kpi({ label, value, icon, accent }: { label: string; value: string | nu
         <span aria-hidden>{icon}</span>
       </div>
       <p className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white">{value}</p>
-    </div>
+    </Link>
   );
 }

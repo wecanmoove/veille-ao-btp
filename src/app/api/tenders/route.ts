@@ -21,7 +21,9 @@ export async function GET(request: NextRequest) {
   if (sourceSlug) where.source = { slug: sourceSlug };
 
   const relevanceLevel = sp.get("relevanceLevel");
-  if (relevanceLevel) where.relevanceLevel = relevanceLevel;
+  if (relevanceLevel) {
+    where.relevanceLevel = relevanceLevel.includes(",") ? { in: relevanceLevel.split(",") } : relevanceLevel;
+  }
 
   const workCategory = sp.get("workCategory");
   if (workCategory) where.workCategory = workCategory;
@@ -40,6 +42,16 @@ export async function GET(request: NextRequest) {
 
   const deadlineBefore = sp.get("deadlineBefore");
   if (deadlineBefore) where.deadlineAt = { lte: new Date(deadlineBefore) };
+
+  const deadlineWithinDays = sp.get("deadlineWithinDays");
+  if (deadlineWithinDays) {
+    where.deadlineAt = { gte: new Date(), lte: new Date(Date.now() + Number(deadlineWithinDays) * 24 * 3600_000) };
+  }
+
+  const createdAfterDays = sp.get("createdAfterDays");
+  if (createdAfterDays) {
+    where.createdAt = { gte: new Date(Date.now() - Number(createdAfterDays) * 24 * 3600_000) };
+  }
 
   const status = sp.get("status");
   if (status) where.status = status;
