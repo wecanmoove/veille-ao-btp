@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { ScoreBadge, RelevanceBadge } from "@/components/badges";
@@ -51,7 +52,11 @@ function formatEuros(n: number): string {
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [punchKey, setPunchKey] = useState(0);
 
   useEffect(() => {
     fetch("/api/stats")
@@ -59,6 +64,32 @@ export default function HomePage() {
       .then(setStats)
       .catch(() => setStats(null));
   }, []);
+
+  async function triggerSync() {
+    setPunchKey((k) => k + 1);
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      const res = await fetch("/api/sync", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        setSyncMessage(`✓ ${data.inserted} nouvelle${data.inserted > 1 ? "s" : ""} annonce${data.inserted > 1 ? "s" : ""}`);
+        setTimeout(() => {
+          fetch("/api/stats")
+            .then((r) => r.json())
+            .then(setStats)
+            .catch(() => {});
+        }, 500);
+      } else {
+        setSyncMessage(`Erreur : ${data.error}`);
+      }
+    } catch {
+      setSyncMessage("Erreur réseau.");
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMessage(null), 4000);
+    }
+  }
 
   const maxZone = stats ? Math.max(1, ...Object.values(stats.byZone)) : 1;
   const categories = stats
@@ -106,6 +137,23 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Sync Push poing */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={triggerSync}
+          disabled={syncing}
+          title="Récupérer les annonces depuis BOAMP, TED France, TED Suisse…"
+          className={`flex h-16 w-16 items-center justify-center rounded-full border-2 border-orange-500 bg-orange-500 text-white shadow-lg transition hover:bg-orange-400 disabled:opacity-60 ${syncing ? "animate-pulse" : ""}`}
+        >
+          <span key={punchKey} className="animate-punch inline-block text-3xl">
+            🥊
+          </span>
+        </button>
+        {syncMessage && (
+          <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{syncMessage}</span>
+        )}
+      </div>
+
       {/* KPI */}
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <Kpi
@@ -139,6 +187,50 @@ export default function HomePage() {
           icon="💶"
           href="/ao?minScore=45&sortBy=score&sortDir=desc"
         />
+      </section>
+
+      {/* Recherche rapide */}
+      <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          🔍 Recherche rapide
+        </h2>
+        <div className="mt-4 space-y-4">
+          <div>
+            <p className="mb-2 text-xs font-semibold text-slate-600 dark:text-slate-400">Par région</p>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(ZONE_META).map(([zoneId, meta]) => (
+                <button
+                  key={zoneId}
+                  onClick={() => router.push(`/ao?zone=${zoneId}`)}
+                  className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 transition hover:border-teal-500 hover:bg-teal-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-teal-950/40"
+                >
+                  {meta.icon} {meta.label.split(" — ")[0]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold text-slate-600 dark:text-slate-400">Par type de travaux</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: "habitation", label: "🏠 Habitation" },
+                { value: "voirie", label: "🏙️ Voirie" },
+                { value: "route", label: "🛣️ Route" },
+                { value: "renovation", label: "Rénovation" },
+                { value: "rehabilitation", label: "Réhabilitation" },
+                { value: "gros_oeuvre", label: "Gros œuvre" },
+              ].map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => router.push(`/ao?${value.startsWith("voirie") || value.startsWith("route") || value.startsWith("habitation") ? `domain=${value}` : `workCategory=${value}`}`)}
+                  className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 transition hover:border-teal-500 hover:bg-teal-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-teal-950/40"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
