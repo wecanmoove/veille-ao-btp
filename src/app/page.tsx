@@ -137,21 +137,33 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Sync Push poing */}
-      <div className="flex items-center gap-3">
+      {/* Sync Push poing + Recherche très pertinent */}
+      <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
         <button
           onClick={triggerSync}
           disabled={syncing}
           title="Récupérer les annonces depuis BOAMP, TED France, TED Suisse…"
-          className={`flex h-16 w-16 items-center justify-center rounded-full border-2 border-orange-500 bg-orange-500 text-white shadow-lg transition hover:bg-orange-400 disabled:opacity-60 ${syncing ? "animate-pulse" : ""}`}
+          className={`flex h-28 w-28 shrink-0 items-center justify-center rounded-full border-4 border-orange-500 bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-xl transition hover:from-orange-300 hover:to-orange-500 disabled:opacity-60 ${syncing ? "animate-pulse" : ""}`}
         >
-          <span key={punchKey} className="animate-punch inline-block text-3xl">
-            🥊
+          <span key={punchKey} className="animate-punch inline-block text-6xl drop-shadow-lg">
+            👊
           </span>
         </button>
-        {syncMessage && (
-          <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{syncMessage}</span>
-        )}
+        <div className="flex flex-1 flex-col gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Récupérer les annonces</p>
+          <button
+            onClick={() => router.push("/ao?relevanceLevel=tres_pertinent")}
+            className="flex items-center gap-2 rounded-lg border-2 border-emerald-500 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950/60"
+          >
+            🎯 Très pertinentes
+            <span className="ml-auto text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+              {stats?.tresPertinent ?? "…"}
+            </span>
+          </button>
+          {syncMessage && (
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{syncMessage}</span>
+          )}
+        </div>
       </div>
 
       {/* KPI */}
