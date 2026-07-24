@@ -38,6 +38,28 @@ export function CategoryBadge({ category }: { category: string }) {
   );
 }
 
+const DOMAIN_STYLES: Record<string, string> = {
+  voirie: "bg-orange-100 text-orange-800 border-orange-300",
+  route: "bg-amber-100 text-amber-800 border-amber-300",
+  habitation: "bg-teal-100 text-teal-800 border-teal-300",
+  autre: "bg-slate-100 text-slate-500 border-slate-300",
+};
+
+const DOMAIN_LABELS: Record<string, string> = {
+  voirie: "🏙️ Voirie",
+  route: "🛣️ Route",
+  habitation: "🏠 Habitation",
+  autre: "Autre",
+};
+
+export function DomainBadge({ domain }: { domain: string }) {
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${DOMAIN_STYLES[domain] ?? DOMAIN_STYLES.autre}`}>
+      {DOMAIN_LABELS[domain] ?? domain}
+    </span>
+  );
+}
+
 export function ScoreBadge({ score }: { score: number }) {
   const color = score >= 70 ? "bg-emerald-600" : score >= 45 ? "bg-sky-600" : score >= 20 ? "bg-amber-600" : "bg-slate-400";
   return (

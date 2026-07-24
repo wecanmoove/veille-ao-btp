@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { RelevanceBadge, CategoryBadge, ScoreBadge } from "@/components/badges";
+import { RelevanceBadge, CategoryBadge, DomainBadge, ScoreBadge } from "@/components/badges";
 
 interface TenderListItem {
   id: string;
@@ -12,6 +12,7 @@ interface TenderListItem {
   score: number;
   relevanceLevel: string;
   workCategory: string;
+  projectDomain: string;
   departements: string[];
   country: string;
   zones: string[];
@@ -33,7 +34,7 @@ interface ZoneOption {
   enabled: boolean;
 }
 
-type SortColumn = "score" | "publishedAt" | "source" | "deadlineAt" | "relevanceLevel" | "workCategory" | "location";
+type SortColumn = "score" | "publishedAt" | "source" | "deadlineAt" | "relevanceLevel" | "workCategory" | "projectDomain" | "location";
 
 const SORT_LABELS: Record<SortColumn, string> = {
   score: "score de pertinence",
@@ -42,6 +43,7 @@ const SORT_LABELS: Record<SortColumn, string> = {
   source: "source",
   relevanceLevel: "pertinence",
   workCategory: "catégorie",
+  projectDomain: "domaine",
   location: "lieu",
 };
 
@@ -64,6 +66,14 @@ const CATEGORY_OPTIONS = [
   { value: "hors_cible", label: "Hors cible" },
 ];
 
+const DOMAIN_OPTIONS = [
+  { value: "", label: "Tous domaines" },
+  { value: "habitation", label: "🏠 Habitation" },
+  { value: "voirie", label: "🏙️ Voirie" },
+  { value: "route", label: "🛣️ Route" },
+  { value: "autre", label: "Autre" },
+];
+
 /** Filtres rapides métier — priorité Aix-Marseille puis Région Sud, Alpes, Suisse. */
 const QUICK_FILTERS: { label: string; kind: "q" | "dept"; value: string; hot?: boolean; ch?: boolean }[] = [
   { label: "Marseille", kind: "q", value: "Marseille", hot: true },
@@ -84,7 +94,7 @@ function csvEscape(v: string): string {
 }
 
 function exportCsv(items: TenderListItem[]) {
-  const header = ["Titre", "Acheteur", "Source", "Score", "Pertinence", "Catégorie", "Pays", "Localisation", "Budget", "Publiée le", "Date limite"];
+  const header = ["Titre", "Acheteur", "Source", "Score", "Pertinence", "Catégorie", "Domaine", "Pays", "Localisation", "Budget", "Publiée le", "Date limite"];
   const rows = items.map((t) =>
     [
       csvEscape(t.title),
@@ -93,6 +103,7 @@ function exportCsv(items: TenderListItem[]) {
       String(t.score),
       t.relevanceLevel,
       t.workCategory,
+      t.projectDomain,
       t.country,
       csvEscape(t.departements.join(" ")),
       t.budgetEstime != null ? String(t.budgetEstime) : "",
@@ -122,6 +133,7 @@ function AnnoncesContent() {
   const [source, setSource] = useState("");
   const [relevanceLevel, setRelevanceLevel] = useState(searchParams.get("relevanceLevel") ?? "");
   const [workCategory, setWorkCategory] = useState(searchParams.get("workCategory") ?? "");
+  const [domain, setDomain] = useState(searchParams.get("domain") ?? "");
   const [minScore, setMinScore] = useState(searchParams.get("minScore") ?? "");
   const [departement, setDepartement] = useState(searchParams.get("departement") ?? "");
   const [zone, setZone] = useState(searchParams.get("zone") ?? "");
@@ -150,6 +162,7 @@ function AnnoncesContent() {
     if (source) params.set("source", source);
     if (relevanceLevel) params.set("relevanceLevel", relevanceLevel);
     if (workCategory) params.set("workCategory", workCategory);
+    if (domain) params.set("domain", domain);
     if (minScore) params.set("minScore", minScore);
     if (departement) params.set("departement", departement);
     if (zone) params.set("zone", zone);
@@ -163,7 +176,7 @@ function AnnoncesContent() {
     setItems(data.items);
     setTotal(data.total);
     setLoading(false);
-  }, [q, source, relevanceLevel, workCategory, minScore, departement, zone, sortBy, sortDir, createdAfterDays, deadlineWithinDays]);
+  }, [q, source, relevanceLevel, workCategory, domain, minScore, departement, zone, sortBy, sortDir, createdAfterDays, deadlineWithinDays]);
 
   function toggleSort(column: SortColumn) {
     if (sortBy === column) {
@@ -326,6 +339,11 @@ function AnnoncesContent() {
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
+        <select className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" value={domain} onChange={(e) => setDomain(e.target.value)}>
+          {DOMAIN_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
         <input
           className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
           placeholder="Dépt / canton (13, GE…)"
@@ -373,6 +391,11 @@ function AnnoncesContent() {
                   Catégorie{sortIndicator("workCategory")}
                 </button>
               </th>
+              <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 lg:table-cell dark:text-slate-400">
+                <button onClick={() => toggleSort("projectDomain")} className="flex items-center hover:text-teal-700 dark:hover:text-teal-400">
+                  Domaine{sortIndicator("projectDomain")}
+                </button>
+              </th>
               <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">
                 <button onClick={() => toggleSort("location")} className="flex items-center hover:text-teal-700 dark:hover:text-teal-400">
                   Lieu{sortIndicator("location")}
@@ -387,10 +410,10 @@ function AnnoncesContent() {
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {loading && (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-slate-400">Chargement…</td></tr>
+              <tr><td colSpan={8} className="px-4 py-10 text-center text-slate-400">Chargement…</td></tr>
             )}
             {!loading && items.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-slate-400">Aucune annonce ne correspond aux filtres.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-10 text-center text-slate-400">Aucune annonce ne correspond aux filtres.</td></tr>
             )}
             {!loading && items.map((t) => (
               <tr key={t.id} className={t.status === "new" ? "bg-teal-50/40 dark:bg-teal-950/20" : undefined}>
@@ -404,6 +427,7 @@ function AnnoncesContent() {
                 <td className="px-4 py-3"><ScoreBadge score={t.score} /></td>
                 <td className="hidden px-4 py-3 md:table-cell"><RelevanceBadge level={t.relevanceLevel} /></td>
                 <td className="hidden px-4 py-3 lg:table-cell"><CategoryBadge category={t.workCategory} /></td>
+                <td className="hidden px-4 py-3 lg:table-cell"><DomainBadge domain={t.projectDomain} /></td>
                 <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                   {t.country === "CH" ? "🇨🇭 " : ""}{t.departements.join(", ") || (t.country === "CH" ? "Suisse" : "—")}
                 </td>

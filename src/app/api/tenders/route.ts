@@ -30,6 +30,9 @@ export async function GET(request: NextRequest) {
   const workCategory = sp.get("workCategory");
   if (workCategory) where.workCategory = workCategory;
 
+  const domain = sp.get("domain");
+  if (domain) where.projectDomain = domain.includes(",") ? { in: domain.split(",") } : domain;
+
   const departement = sp.get("departement");
   if (departement) where.departementsJson = { contains: `"${departement}"` };
 
@@ -80,6 +83,8 @@ export async function GET(request: NextRequest) {
               [{ score: sortDir }]
             : sortBy === "workCategory"
               ? [{ workCategory: sortDir }]
+              : sortBy === "projectDomain"
+                ? [{ projectDomain: sortDir }]
               : sortBy === "location"
                 ? [{ country: sortDir }, { departementsJson: sortDir }]
                 : [{ score: "desc" }, { publishedAt: "desc" }];

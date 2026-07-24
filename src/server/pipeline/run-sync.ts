@@ -5,6 +5,7 @@ import { withRetry } from "../retry";
 import { getConnector } from "../connectors";
 import type { NormalizedNotice } from "../connectors/types";
 import { computeDedupKey } from "./dedup";
+import { inferProjectDomain } from "./btp-keywords";
 import { scoreWithRules } from "./rules-scoring";
 import { scoreNotice } from "./ai-scoring";
 import { sendAlertsForTender, skipUnconfiguredChannels } from "../notifications/notification-service";
@@ -107,6 +108,7 @@ export async function runSync(sourceSlug: string, trigger: "cron" | "manual"): P
 
       const country = notice.country ?? "FR";
       const matchedZones = matchZones(zones, { country, departements: notice.departements });
+      const projectDomain = inferProjectDomain(notice.cpvCodes, [notice.title, notice.description ?? ""].join("\n"));
 
       const data = {
         sourceId: source.id,
@@ -129,6 +131,7 @@ export async function runSync(sourceSlug: string, trigger: "cron" | "manual"): P
         score: scoring.score,
         relevanceLevel: scoring.relevanceLevel,
         workCategory: scoring.workCategory,
+        projectDomain,
         keywordsJson: JSON.stringify(scoring.matchedKeywords),
         justification: scoring.justification,
         exclusionReason: scoring.exclusionReason,

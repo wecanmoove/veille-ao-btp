@@ -54,6 +54,7 @@ model Tender {
   score           Int     @default(0) // 0-100
   relevanceLevel  String  @default("a_verifier") // tres_pertinent | pertinent | a_verifier | non_pertinent
   workCategory    String  @default("hors_cible") // rehabilitation | renovation | gros_oeuvre | second_oeuvre | tce | maintenance_entretien | hors_cible
+  projectDomain   String  @default("autre") // voirie | route | habitation | autre — domaine de l'ouvrage (déduit CPV + texte)
   keywordsJson    String  @default("[]") // mots_cles_detectes
   justification   String?
   exclusionReason String?
@@ -70,6 +71,7 @@ model Tender {
   @@index([dedupKey])
   @@index([score])
   @@index([deadlineAt])
+  @@index([projectDomain])
 }
 
 model SyncRun {
