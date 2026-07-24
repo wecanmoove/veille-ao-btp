@@ -11,7 +11,7 @@ services:
       - "3000:3000"
     environment:
       # Database (SQLite in persistent volume)
-      DATABASE_URL: "file:/app/data/renov-midi.db"
+      DATABASE_URL: "postgresql://veille:veille@veille-db:5432/veille_ao_btp"
       # Session
       SESSION_SECRET: "${SESSION_SECRET:-96aeffa02d010b4c61812333154f4c60}"
       # Optional: tunnel password (remove for local testing)
