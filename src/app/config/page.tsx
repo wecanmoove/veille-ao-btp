@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { StatusBadge } from "@/components/badges";
 import { BTP_KEYWORDS } from "@/server/pipeline/btp-keywords";
+import { BASE_PATH } from "@/lib/base-path";
 
 interface SourceRow {
   id: string;
@@ -72,26 +73,26 @@ export default function ConfigPage() {
   const [saving, setSaving] = useState(false);
 
   const loadSources = useCallback(async () => {
-    const res = await fetch("/api/sources");
+    const res = await fetch(`${BASE_PATH}/api/sources`);
     setSources(await res.json());
   }, []);
 
   useEffect(() => {
     void (async () => {
       await loadSources();
-      const res = await fetch("/api/settings/alerts");
+      const res = await fetch(`${BASE_PATH}/api/settings/alerts`);
       setAlertConfig(await res.json());
     })();
   }, []);
 
   async function updateSource(slug: string, patch: Partial<Pick<SourceRow, "enabled" | "cronExpression" | "timezone">>) {
-    await fetch(`/api/sources/${slug}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) });
+    await fetch(`${BASE_PATH}/api/sources/${slug}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) });
     await loadSources();
   }
 
   async function triggerSync(slug: string) {
     setSyncMessage((m) => ({ ...m, [slug]: "En cours..." }));
-    const res = await fetch(`/api/sync/${slug}`, { method: "POST" });
+    const res = await fetch(`${BASE_PATH}/api/sync/${slug}`, { method: "POST" });
     const data = await res.json();
     setSyncMessage((m) => ({
       ...m,
@@ -105,7 +106,7 @@ export default function ConfigPage() {
   async function saveAlertConfig(patch: Partial<AlertConfig>) {
     if (!alertConfig) return;
     setSaving(true);
-    const res = await fetch("/api/settings/alerts", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) });
+    const res = await fetch(`${BASE_PATH}/api/settings/alerts`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) });
     const data = await res.json();
     setAlertConfig(data);
     setSaving(false);

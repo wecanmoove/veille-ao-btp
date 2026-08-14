@@ -41,6 +41,8 @@ export async function isValidSession(cookieValue: string | undefined, password: 
  * depuis un vrai appareil distant. On reconstruit donc l'origine à partir
  * de X-Forwarded-Proto/Host (posés par le proxy) avec repli sur le Host reçu.
  */
+export { BASE_PATH } from "./base-path";
+
 export function publicOrigin(req: { headers: Headers; url: string }): string {
   const proto = req.headers.get("x-forwarded-proto") ?? new URL(req.url).protocol.replace(":", "");
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? new URL(req.url).host;

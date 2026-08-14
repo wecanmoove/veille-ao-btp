@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE, expectedSessionValue, publicOrigin } from "@/lib/tunnel-auth";
+import { BASE_PATH, SESSION_COOKIE, expectedSessionValue, publicOrigin } from "@/lib/tunnel-auth";
 
 export async function POST(req: NextRequest) {
   const password = process.env.TUNNEL_PASSWORD;
@@ -10,12 +10,12 @@ export async function POST(req: NextRequest) {
 
   const form = await req.formData();
   const entered = String(form.get("password") ?? "");
-  const next = String(form.get("next") ?? "/");
-  const safeNext = next.startsWith("/") ? next : "/";
+  const next = String(form.get("next") ?? `${BASE_PATH}/`);
+  const safeNext = next.startsWith("/") ? next : `${BASE_PATH}/`;
   const origin = publicOrigin(req);
 
   if (entered !== password) {
-    const url = new URL("/auth", origin);
+    const url = new URL(`${BASE_PATH}/auth`, origin);
     url.searchParams.set("error", "1");
     url.searchParams.set("next", safeNext);
     return NextResponse.redirect(url, { status: 303 });

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { ScoreBadge, RelevanceBadge } from "@/components/badges";
+import { BASE_PATH } from "@/lib/base-path";
 
 interface Stats {
   total: number;
@@ -54,7 +55,7 @@ export default function HomePage() {
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
-    fetch("/api/stats")
+    fetch(`${BASE_PATH}/api/stats`)
       .then((r) => r.json())
       .then(setStats)
       .catch(() => setStats(null));

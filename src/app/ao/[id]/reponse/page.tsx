@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { BASE_PATH } from "@/lib/base-path";
 
 interface ChecklistItem {
   id: string;
@@ -44,7 +45,7 @@ export default function ReponsePage({ params }: { params: Promise<{ id: string }
   const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/tenders/${id}/reponse`)
+    fetch(`${BASE_PATH}/api/tenders/${id}/reponse`)
       .then((r) => r.json())
       .then((p: Pack) => {
         setPack(p);

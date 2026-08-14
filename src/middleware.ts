@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE, isValidSession, publicOrigin } from "@/lib/tunnel-auth";
+import { BASE_PATH, SESSION_COOKIE, isValidSession, publicOrigin } from "@/lib/tunnel-auth";
 
 /**
  * Protection cookie OPT-IN pour exposition tunnel/LAN.
@@ -37,11 +37,13 @@ export async function middleware(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
   }
-  const url = new URL("/auth", publicOrigin(req));
-  url.searchParams.set("next", req.nextUrl.pathname + req.nextUrl.search);
+  const url = new URL(`${BASE_PATH}/auth`, publicOrigin(req));
+  url.searchParams.set("next", BASE_PATH + req.nextUrl.pathname + req.nextUrl.search);
   return NextResponse.redirect(url);
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image).*)"],
+  // "/" est liste explicitement : avec basePath, le matcher est prefixe
+  // (/veille-ao/...) et ne couvrirait pas l'URL racine nue.
+  matcher: ["/", "/((?!_next/static|_next/image).*)"],
 };

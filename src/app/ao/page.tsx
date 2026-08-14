@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { RelevanceBadge, CategoryBadge, ScoreBadge } from "@/components/badges";
+import { BASE_PATH } from "@/lib/base-path";
 
 interface TenderListItem {
   id: string;
@@ -125,7 +126,7 @@ function AnnoncesContent() {
     if (departement) params.set("departement", departement);
     if (zone) params.set("zone", zone);
     params.set("pageSize", "100");
-    const res = await fetch(`/api/tenders?${params}`);
+    const res = await fetch(`${BASE_PATH}/api/tenders?${params}`);
     const data = await res.json();
     setItems(data.items);
     setTotal(data.total);
@@ -133,8 +134,8 @@ function AnnoncesContent() {
   }, [q, source, relevanceLevel, workCategory, minScore, departement, zone]);
 
   useEffect(() => {
-    fetch("/api/sources").then((r) => r.json()).then(setSources);
-    fetch("/api/settings/zones").then((r) => r.json()).then(setZonesOptions);
+    fetch(`${BASE_PATH}/api/sources`).then((r) => r.json()).then(setSources);
+    fetch(`${BASE_PATH}/api/settings/zones`).then((r) => r.json()).then(setZonesOptions);
   }, []);
 
   useEffect(() => {

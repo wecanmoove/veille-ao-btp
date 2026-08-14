@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BASE_PATH } from "@/lib/base-path";
 
 type Profile = Record<string, string>;
 
@@ -30,7 +31,7 @@ export default function EntreprisePage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    fetch("/api/settings/company")
+    fetch(`${BASE_PATH}/api/settings/company`)
       .then((r) => r.json())
       .then(setProfile)
       .catch(() => setProfile({}));
@@ -40,7 +41,7 @@ export default function EntreprisePage() {
     if (!profile) return;
     setSaving(true);
     setSaved(false);
-    await fetch("/api/settings/company", {
+    await fetch(`${BASE_PATH}/api/settings/company`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(profile),
