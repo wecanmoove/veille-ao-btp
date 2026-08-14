@@ -53,6 +53,20 @@ const CATEGORY_OPTIONS = [
   { value: "hors_cible", label: "Hors cible" },
 ];
 
+/** Colonnes triables. `defaultDir` = sens applique au premier clic : on veut
+ *  le plus recent / le mieux note d abord, mais l ordre alphabetique pour le
+ *  texte. `className` reprend les regles d affichage responsive du tableau. */
+const SORT_COLUMNS = {
+  title: { label: "Annonce", defaultDir: "asc", className: "" },
+  source: { label: "Source", defaultDir: "asc", className: "" },
+  score: { label: "Score", defaultDir: "desc", className: "" },
+  relevanceLevel: { label: "Pertinence", defaultDir: "desc", className: "hidden md:table-cell" },
+  publishedAt: { label: "Publiée", defaultDir: "desc", className: "hidden lg:table-cell" },
+  deadlineAt: { label: "Limite", defaultDir: "asc", className: "hidden sm:table-cell" },
+} as const satisfies Record<string, { label: string; defaultDir: "asc" | "desc"; className: string }>;
+
+type SortKey = keyof typeof SORT_COLUMNS;
+
 /** Filtres rapides métier — priorité Aix-Marseille puis Région Sud, Alpes, Suisse. */
 const QUICK_FILTERS: { label: string; kind: "q" | "dept"; value: string; hot?: boolean }[] = [
   { label: "Marseille", kind: "q", value: "Marseille", hot: true },
@@ -100,6 +114,41 @@ function exportCsv(items: TenderListItem[]) {
   URL.revokeObjectURL(url);
 }
 
+/** En-tete de colonne cliquable : fleche pleine si la colonne pilote le tri,
+ *  chevron discret au survol sinon, pour signaler qu elle est cliquable. */
+function SortableHeader({
+  sortKey,
+  active,
+  dir,
+  onSort,
+}: {
+  sortKey: SortKey;
+  active: boolean;
+  dir: "asc" | "desc";
+  onSort: (key: SortKey) => void;
+}) {
+  const col = SORT_COLUMNS[sortKey];
+  return (
+    <th
+      className={`px-4 py-3 text-left font-semibold ${col.className} ${
+        active ? "text-teal-700 dark:text-teal-400" : "text-slate-600 dark:text-slate-400"
+      }`}
+      aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}
+    >
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className="group inline-flex items-center gap-1 hover:text-teal-700 dark:hover:text-teal-400"
+      >
+        {col.label}
+        <span className={active ? "" : "opacity-0 transition-opacity group-hover:opacity-40"}>
+          {active && dir === "asc" ? "▲" : "▼"}
+        </span>
+      </button>
+    </th>
+  );
+}
+
 function AnnoncesContent() {
   const searchParams = useSearchParams();
   const [items, setItems] = useState<TenderListItem[]>([]);
@@ -114,6 +163,10 @@ function AnnoncesContent() {
   const [minScore, setMinScore] = useState("");
   const [departement, setDepartement] = useState(searchParams.get("departement") ?? "");
   const [zone, setZone] = useState(searchParams.get("zone") ?? "");
+  const [sortBy, setSortBy] = useState<SortKey>("score");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -125,13 +178,15 @@ function AnnoncesContent() {
     if (minScore) params.set("minScore", minScore);
     if (departement) params.set("departement", departement);
     if (zone) params.set("zone", zone);
+    params.set("sortBy", sortBy);
+    params.set("sortDir", sortDir);
     params.set("pageSize", "100");
     const res = await fetch(`${BASE_PATH}/api/tenders?${params}`);
     const data = await res.json();
     setItems(data.items);
     setTotal(data.total);
     setLoading(false);
-  }, [q, source, relevanceLevel, workCategory, minScore, departement, zone]);
+  }, [q, source, relevanceLevel, workCategory, minScore, departement, zone, sortBy, sortDir]);
 
   useEffect(() => {
     fetch(`${BASE_PATH}/api/sources`).then((r) => r.json()).then(setSources);
@@ -142,6 +197,39 @@ function AnnoncesContent() {
     const t = setTimeout(load, 300);
     return () => clearTimeout(t);
   }, [load]);
+
+  /** Un clic sur une colonne deja active inverse le sens ; sinon on applique
+   *  le sens naturel de la colonne (recent d abord pour les dates et le score,
+   *  alphabetique pour le texte). */
+  const toggleSort = (key: SortKey) => {
+    if (key === sortBy) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortBy(key); setSortDir(SORT_COLUMNS[key].defaultDir); }
+  };
+
+  /** Bouton punch : relance toutes les sources actives puis recharge la liste. */
+  const punchSync = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    setSyncMsg("Collecte en cours…");
+    let inserted = 0;
+    const failed: string[] = [];
+    for (const src of sources) {
+      try {
+        const res = await fetch(`${BASE_PATH}/api/sync/${src.slug}`, { method: "POST" });
+        const data = await res.json();
+        if (res.ok) inserted += data.inserted ?? 0;
+        else failed.push(src.slug);
+      } catch { failed.push(src.slug); }
+    }
+    await load();
+    setSyncing(false);
+    setSyncMsg(
+      failed.length
+        ? `${inserted} nouvelle(s) · echec : ${failed.join(", ")}`
+        : `${inserted} nouvelle(s) annonce(s)`,
+    );
+    setTimeout(() => setSyncMsg(null), 8000);
+  };
 
   const toggleQuick = (f: (typeof QUICK_FILTERS)[number]) => {
     if (f.kind === "q") setQ(q === f.value ? "" : f.value);
@@ -157,9 +245,24 @@ function AnnoncesContent() {
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">Annonces</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            {total} appel{total > 1 ? "s" : ""} d&apos;offres · triés par score de pertinence
+            {total} appel{total > 1 ? "s" : ""} d&apos;offres · triés par{" "}
+            {SORT_COLUMNS[sortBy].label.toLowerCase()} ({sortDir === "asc" ? "croissant" : "décroissant"})
           </p>
         </div>
+        <div className="flex items-center gap-3">
+          {syncMsg && (
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{syncMsg}</span>
+          )}
+          <button
+            onClick={punchSync}
+            disabled={syncing || sources.length === 0}
+            title="Recuperer les dernieres annonces depuis toutes les sources"
+            className="group flex items-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:from-orange-400 hover:to-orange-500 disabled:opacity-60"
+          >
+            <span className={`text-base ${syncing ? "animate-punch" : "transition-transform group-hover:translate-x-1"}`}>🥊</span>
+            <span>{syncing ? "Collecte…" : "Synchroniser"}</span>
+            <span className={syncing ? "opacity-0" : "transition-transform group-hover:translate-x-1"}>➜</span>
+          </button>
         <button
           onClick={() => exportCsv(items)}
           disabled={items.length === 0}
@@ -167,6 +270,7 @@ function AnnoncesContent() {
         >
           ⬇️ Exporter CSV ({items.length})
         </button>
+        </div>
       </div>
 
       {/* Filtres rapides ville / département / canton */}
@@ -262,21 +366,34 @@ function AnnoncesContent() {
         <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
           <thead className="bg-slate-50 dark:bg-slate-950/60">
             <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">Annonce</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">Source</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">Score</th>
-              <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 md:table-cell dark:text-slate-400">Pertinence</th>
+              {(["title", "source", "score", "relevanceLevel"] as SortKey[]).map((key) => (
+                <SortableHeader
+                  key={key}
+                  sortKey={key}
+                  active={sortBy === key}
+                  dir={sortDir}
+                  onSort={toggleSort}
+                />
+              ))}
               <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 lg:table-cell dark:text-slate-400">Catégorie</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-400">Lieu</th>
-              <th className="hidden px-4 py-3 text-left font-semibold text-slate-600 sm:table-cell dark:text-slate-400">Limite</th>
+              {(["publishedAt", "deadlineAt"] as SortKey[]).map((key) => (
+                <SortableHeader
+                  key={key}
+                  sortKey={key}
+                  active={sortBy === key}
+                  dir={sortDir}
+                  onSort={toggleSort}
+                />
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {loading && (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-slate-400">Chargement…</td></tr>
+              <tr><td colSpan={8} className="px-4 py-10 text-center text-slate-400">Chargement…</td></tr>
             )}
             {!loading && items.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-slate-400">Aucune annonce ne correspond aux filtres.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-10 text-center text-slate-400">Aucune annonce ne correspond aux filtres.</td></tr>
             )}
             {!loading && items.map((t) => (
               <tr key={t.id} className={t.status === "new" ? "bg-teal-50/40 dark:bg-teal-950/20" : undefined}>
@@ -292,6 +409,9 @@ function AnnoncesContent() {
                 <td className="hidden px-4 py-3 lg:table-cell"><CategoryBadge category={t.workCategory} /></td>
                 <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                   {t.country === "CH" ? "🇨🇭 " : ""}{t.departements.join(", ") || (t.country === "CH" ? "Suisse" : "—")}
+                </td>
+                <td className="hidden px-4 py-3 text-slate-600 lg:table-cell dark:text-slate-300">
+                  {t.publishedAt ? new Date(t.publishedAt).toLocaleDateString("fr-FR") : "—"}
                 </td>
                 <td className="hidden px-4 py-3 text-slate-600 sm:table-cell dark:text-slate-300">
                   {t.deadlineAt ? new Date(t.deadlineAt).toLocaleDateString("fr-FR") : "—"}

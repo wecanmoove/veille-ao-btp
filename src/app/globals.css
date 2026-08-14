@@ -11,3 +11,15 @@
     color-scheme: dark;
   }
 }
+
+/* Gant de boxe du bouton de synchronisation : coup porte en rythme tant que
+   la collecte tourne. Neutralise si l utilisateur limite les animations. */
+@keyframes punch {
+  0%, 60%, 100% { transform: translateX(0); }
+  20%           { transform: translateX(6px) scale(1.15); }
+  35%           { transform: translateX(-2px); }
+}
+.animate-punch { animation: punch 0.7s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-punch { animation: none; }
+}
