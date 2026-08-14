@@ -7,8 +7,9 @@ services:
       POSTGRES_USER: veille
       POSTGRES_PASSWORD: veille
       POSTGRES_DB: veille_ao_btp
-    ports:
-      - "5432:5432"
+    # Port volontairement non publié : sur le serveur, le 5432 de l'hôte est
+    # déjà pris par le PostgreSQL système. L'app joint la base par le réseau
+    # Docker, personne d'autre n'en a besoin.
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -24,10 +25,14 @@ services:
     container_name: renov-midi
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      # Écoute sur localhost seulement : l'accès public passe par nginx, qui
+      # porte le TLS. Publier sur 0.0.0.0 exposerait l'app en clair.
+      - "127.0.0.1:3000:3000"
     environment:
       DATABASE_URL: "postgresql://veille:veille@db:5432/veille_ao_btp"
-      SESSION_SECRET: "${SESSION_SECRET:-96aeffa02d010b4c61812333154f4c60}"
+      # Secrets lus depuis .env (non versionné), pas écrits en dur ici.
+      SESSION_SECRET: "${SESSION_SECRET}"
+      TUNNEL_PASSWORD: "${TUNNEL_PASSWORD}"
       NODE_ENV: "production"
     depends_on:
       db:
