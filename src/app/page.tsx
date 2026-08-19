@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { ScoreBadge, RelevanceBadge } from "@/components/badges";
+import { BASE_PATH } from "@/lib/base-path";
 
 interface Stats {
   total: number;
@@ -59,7 +60,7 @@ export default function HomePage() {
   const [punchKey, setPunchKey] = useState(0);
 
   useEffect(() => {
-    fetch("/api/stats")
+    fetch(`${BASE_PATH}/api/stats`)
       .then((r) => r.json())
       .then(setStats)
       .catch(() => setStats(null));
@@ -70,12 +71,12 @@ export default function HomePage() {
     setSyncing(true);
     setSyncMessage(null);
     try {
-      const res = await fetch("/api/sync", { method: "POST" });
+      const res = await fetch(`${BASE_PATH}/api/sync`, { method: "POST" });
       const data = await res.json();
       if (res.ok) {
         setSyncMessage(`✓ ${data.inserted} nouvelle${data.inserted > 1 ? "s" : ""} annonce${data.inserted > 1 ? "s" : ""}`);
         setTimeout(() => {
-          fetch("/api/stats")
+          fetch(`${BASE_PATH}/api/stats`)
             .then((r) => r.json())
             .then(setStats)
             .catch(() => {});

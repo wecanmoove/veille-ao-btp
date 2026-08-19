@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE, verifySession, publicOrigin, USER_HEADERS } from "@/lib/auth";
+import { BASE_PATH } from "@/lib/base-path";
 
 /**
  * Authentification par cookie de session signé, multi-comptes (admin /
@@ -37,7 +38,7 @@ export async function proxy(req: NextRequest) {
     if (req.nextUrl.pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
     }
-    const url = new URL("/auth", publicOrigin(req));
+    const url = new URL(`${BASE_PATH}/auth`, publicOrigin(req));
     url.searchParams.set("next", req.nextUrl.pathname + req.nextUrl.search);
     return NextResponse.redirect(url);
   }
@@ -52,5 +53,8 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image).*)"],
+  // "/" est liste explicitement : avec un basePath, les matchers sont
+  // prefixes (/veille-ao/...) et ne couvriraient pas l'URL racine nue,
+  // qui echapperait alors au controle de session.
+  matcher: ["/", "/((?!_next/static|_next/image).*)"],
 };

@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { BASE_PATH } from "@/lib/base-path";
 
 interface ChecklistItem {
   id: string;
@@ -44,7 +45,7 @@ function downloadBlob(filename: string, blob: Blob) {
 }
 
 async function exportDoc(title: string, content: string, filename: string, format: "docx" | "pdf") {
-  const res = await fetch("/api/reponse/export", {
+  const res = await fetch(`${BASE_PATH}/api/reponse/export`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, content, filename, format }),
@@ -66,7 +67,7 @@ export default function ReponsePage({ params }: { params: Promise<{ id: string }
   const [forbidden, setForbidden] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/tenders/${id}/reponse`)
+    fetch(`${BASE_PATH}/api/tenders/${id}/reponse`)
       .then(async (r) => {
         if (r.status === 403) {
           setForbidden(true);
@@ -212,7 +213,7 @@ export default function ReponsePage({ params }: { params: Promise<{ id: string }
                   </button>
                   {attached && (
                     <a
-                      href={`/api/settings/documents/${attached.id}`}
+                      href={`${BASE_PATH}/api/settings/documents/${attached.id}`}
                       onClick={(e) => e.stopPropagation()}
                       className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
                         attached.valid
@@ -285,7 +286,7 @@ export default function ReponsePage({ params }: { params: Promise<{ id: string }
           onClick={async () => {
             setExportingZip(true);
             try {
-              const res = await fetch(`/api/tenders/${id}/reponse/export-zip`, {
+              const res = await fetch(`${BASE_PATH}/api/tenders/${id}/reponse/export-zip`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ lettre, memoire }),

@@ -1,15 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import { AppShell } from "@/components/app-shell";
 import "./globals.css";
+import { BASE_PATH } from "@/lib/base-path";
 
 export const metadata: Metadata = {
   title: "Renov Midi — Veille AO BTP",
   description:
     "Plateforme SaaS de veille automatisée des appels d'offres BTP — Aix-Marseille, Région Sud, Alpes, Suisse romande",
-  manifest: "/manifest.json",
+  manifest: `${BASE_PATH}/manifest.json`,
   icons: {
-    icon: "/icon-192.png",
-    apple: "/apple-touch-icon.png",
+    icon: `${BASE_PATH}/icon-192.png`,
+    apple: `${BASE_PATH}/apple-touch-icon.png`,
   },
   appleWebApp: {
     capable: true,

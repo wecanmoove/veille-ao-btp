@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { DOCUMENT_TYPES } from "@/server/document-types";
+import { BASE_PATH } from "@/lib/base-path";
 
 type Profile = Record<string, string>;
 
@@ -49,14 +50,14 @@ export default function EntreprisePage() {
   const [docError, setDocError] = useState<string | null>(null);
 
   const loadDocuments = useCallback(async () => {
-    const res = await fetch("/api/settings/documents");
+    const res = await fetch(`${BASE_PATH}/api/settings/documents`);
     setDocuments(await res.json());
   }, []);
 
   useEffect(() => {
     void (async () => {
       await Promise.all([
-        fetch("/api/settings/company")
+        fetch(`${BASE_PATH}/api/settings/company`)
           .then((r) => r.json())
           .then(setProfile)
           .catch(() => setProfile({})),
@@ -69,7 +70,7 @@ export default function EntreprisePage() {
     if (!profile) return;
     setSaving(true);
     setSaved(false);
-    await fetch("/api/settings/company", {
+    await fetch(`${BASE_PATH}/api/settings/company`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(profile),
@@ -86,7 +87,7 @@ export default function EntreprisePage() {
     form.set("type", type);
     form.set("file", file);
     if (expiresAt) form.set("expiresAt", expiresAt);
-    const res = await fetch("/api/settings/documents", { method: "POST", body: form });
+    const res = await fetch(`${BASE_PATH}/api/settings/documents`, { method: "POST", body: form });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setDocError(data.error ?? "Échec de l'envoi");
@@ -97,7 +98,7 @@ export default function EntreprisePage() {
   }
 
   async function removeDocument(id: string) {
-    await fetch(`/api/settings/documents/${id}`, { method: "DELETE" });
+    await fetch(`${BASE_PATH}/api/settings/documents/${id}`, { method: "DELETE" });
     await loadDocuments();
   }
 
@@ -158,7 +159,7 @@ export default function EntreprisePage() {
                   <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{dt.label}</p>
                   {doc ? (
                     <p className="truncate text-xs text-slate-500">
-                      <a href={`/api/settings/documents/${doc.id}`} className="text-teal-700 hover:underline dark:text-teal-400">
+                      <a href={`${BASE_PATH}/api/settings/documents/${doc.id}`} className="text-teal-700 hover:underline dark:text-teal-400">
                         {doc.fileName}
                       </a>{" "}
                       · {formatSize(doc.sizeBytes)}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/server/db";
 import { SESSION_COOKIE, signSession, verifyPassword, publicOrigin } from "@/lib/auth";
+import { BASE_PATH } from "@/lib/base-path";
 
 export async function POST(req: NextRequest) {
   const secret = process.env.SESSION_SECRET ?? "";
@@ -8,15 +9,15 @@ export async function POST(req: NextRequest) {
   const form = await req.formData();
   const username = String(form.get("username") ?? "").trim();
   const password = String(form.get("password") ?? "");
-  const next = String(form.get("next") ?? "/");
-  const safeNext = next.startsWith("/") ? next : "/";
+  const next = String(form.get("next") ?? `${BASE_PATH}/`);
+  const safeNext = next.startsWith("/") ? next : `${BASE_PATH}/`;
   const origin = publicOrigin(req);
 
   const user = username ? await prisma.user.findUnique({ where: { username } }) : null;
   const valid = user ? await verifyPassword(password, user.passwordHash) : false;
 
   if (!user || !valid) {
-    const url = new URL("/auth", origin);
+    const url = new URL(`${BASE_PATH}/auth`, origin);
     url.searchParams.set("error", "1");
     url.searchParams.set("next", safeNext);
     return NextResponse.redirect(url, { status: 303 });

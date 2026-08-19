@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BASE_PATH } from "@/lib/base-path";
 
 export const metadata: Metadata = {
   title: "Connexion · Renov Midi",
@@ -25,7 +26,7 @@ export default async function AuthPage({
     >
       <form
         method="POST"
-        action="/api/auth/login"
+        action={`${BASE_PATH}/api/auth/login`}
         style={{
           width: "100%",
           maxWidth: 360,

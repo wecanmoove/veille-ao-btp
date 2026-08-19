@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { RelevanceBadge, CategoryBadge, DomainBadge, ScoreBadge } from "@/components/badges";
+import { BASE_PATH } from "@/lib/base-path";
 
 interface TenderListItem {
   id: string;
@@ -149,7 +150,7 @@ function AnnoncesContent() {
   const [role, setRole] = useState<"admin" | "restricted" | null>(null);
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch(`${BASE_PATH}/api/auth/me`)
       .then((r) => r.json())
       .then((me) => setRole(me.role ?? null))
       .catch(() => setRole(null));
@@ -171,7 +172,7 @@ function AnnoncesContent() {
     params.set("sortBy", sortBy);
     params.set("sortDir", sortDir);
     params.set("pageSize", "100");
-    const res = await fetch(`/api/tenders?${params}`);
+    const res = await fetch(`${BASE_PATH}/api/tenders?${params}`);
     const data = await res.json();
     setItems(data.items);
     setTotal(data.total);
@@ -197,7 +198,7 @@ function AnnoncesContent() {
     setSyncing(true);
     setSyncMessage(null);
     try {
-      const res = await fetch("/api/sync", { method: "POST" });
+      const res = await fetch(`${BASE_PATH}/api/sync`, { method: "POST" });
       const data = await res.json();
       if (res.ok) {
         setSyncMessage(`✓ ${data.inserted} nouvelle${data.inserted > 1 ? "s" : ""} annonce${data.inserted > 1 ? "s" : ""} (${data.fetched} récupérées, ${data.duplicates} doublons)`);
@@ -214,8 +215,8 @@ function AnnoncesContent() {
   }
 
   useEffect(() => {
-    fetch("/api/sources").then((r) => r.json()).then(setSources);
-    fetch("/api/settings/zones").then((r) => r.json()).then(setZonesOptions);
+    fetch(`${BASE_PATH}/api/sources`).then((r) => r.json()).then(setSources);
+    fetch(`${BASE_PATH}/api/settings/zones`).then((r) => r.json()).then(setZonesOptions);
   }, []);
 
   useEffect(() => {

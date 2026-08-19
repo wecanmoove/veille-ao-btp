@@ -4,11 +4,12 @@ import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandMark } from "./logo";
+import { BASE_PATH } from "@/lib/base-path";
 
 function useCurrentUser() {
   const [user, setUser] = useState<{ username: string; role: "admin" | "restricted" } | null>(null);
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch(`${BASE_PATH}/api/auth/me`)
       .then((r) => (r.ok ? r.json() : null))
       .then(setUser)
       .catch(() => setUser(null));
@@ -24,7 +25,7 @@ function UserBadge() {
       <span className="text-slate-500 dark:text-slate-400">
         👤 {user.username} <span className="text-slate-400">· {user.role === "admin" ? "admin" : "restreint"}</span>
       </span>
-      <form action="/api/auth/logout" method="POST">
+      <form action={`${BASE_PATH}/api/auth/logout`} method="POST">
         <button type="submit" className="font-semibold text-teal-700 hover:underline dark:text-teal-400">
           Déconnexion
         </button>
